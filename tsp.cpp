@@ -13,7 +13,7 @@ TSP::TSP(string in, string out){
 	inFname = in; outFname = out;
 
 	// set n to number of lines read from input file
-	getNodeCount();
+	readInput();
 
 	// Allocate memory
 	graph = new int*[n];
@@ -50,10 +50,14 @@ TSP::~TSP(){
 	delete [] graph;
 	delete [] cost;
 	delete [] adjlist;
+
+	// for (int i = 0; i < _row; i++) {
+	// 	delete [] _originMap;
+	// }
+	// delete [] _originMap;
 }
 
-void TSP::getNodeCount(){
-	int count = 0;
+void TSP::readInput(){
 	ifstream inStream;
 	inStream.open(inFname.c_str(), ios::in);
 
@@ -62,30 +66,41 @@ void TSP::getNodeCount(){
 	  exit(1);
 	}
 	std::string unused;
-	while ( std::getline(inStream, unused) )
-	   ++count;
+	
+	//read init position
+	int beg_x, beg_y;
+	inStream >> beg_x >> beg_y;
+
+	//read gas tank size
+	inStream >> _tankSize;
+
+	//read map size
+	inStream >> _row >> _col;
+
+	// Allocate memory
+	_originMap = new int*[_row];
+	for (int i = 0; i < _row; i++) {
+		_originMap[i] = new int[_col];
+		for (int j = 0; j < _col; j++) _originMap[i][j] = 0;
+	}
+
+	int count = 1;
+	//first position
+	struct City c = {beg_x-1, beg_y-1};
+	cities.push_back(c);
+	for(int i = 0; i < _row; i++)
+		for(int j = 0; j < _col; j++) {
+			inStream >> _originMap[i][j];
+			if (_originMap[i][j] == 3) {
+				// Push back new city to vector
+				struct City c = {i, j};
+				cities.push_back(c);
+				count++;
+			}
+			
+		}
+
 	n = count;
-	inStream.close();
-};
-
-void TSP::readCities(){
-	/////////////////////////////////////////////////////
-	ifstream inStream;
-	inStream.open(inFname.c_str(), ios::in);
-	if (!inStream) {
-	  cerr << "Can't open input file " << inFname << endl;
-	  exit(1);
-	}
-	int x, y;
-	int i = 0;
-
-	while (!inStream.eof() ) {
-		inStream >> x >> y;
-		// Push back new city to vector
-		struct City c = {x, y};
-		cities.push_back(c);
-		i++;
-	}
 	inStream.close();
 };
 
@@ -382,17 +397,14 @@ void TSP::make_hamilton(vector<int> &path, int &path_dist) {
 	path_dist += graph[*curr][*next];
 }
 
-
-
-
-
 void TSP::create_tour(int pos){
+
 	// call euler with actual circuit vector
 	euler(pos, circuit);
 
 	// make it hamiltonian
 	// pass actual vars
-	make_hamilton(circuit, pathLength);
+	// make_hamilton(circuit, pathLength);
 }
 
 

@@ -28,7 +28,7 @@
 using namespace std;
 
 // Toggle printing debugging info to console
-#define DEBUG 0
+#define DEBUG 1
 
 // Number of threads to use to fill N x N cost matrix
 #define THREADS 1
@@ -65,7 +65,6 @@ private:
 	// Used to find minimum matching on odd nodes
 	int **cost;
 
-
 	// Initialization function
 	void getNodeCount();
 
@@ -82,6 +81,16 @@ protected:
 public:
 	// Number of nodes
 	int n;
+
+	//Gas tank size
+	int _tankSize;
+
+	//Map size
+	int _row; //row
+	int _col; //column
+
+	//Map
+	int **_originMap;
 
 	// euler circuit
 	vector<int>circuit;
@@ -121,7 +130,7 @@ public:
 
 
 	// Initialization functions
-	void readCities();
+	void readInput();
 	void fillMatrix_threads();
 
 	// Find MST using Prim's algorithm

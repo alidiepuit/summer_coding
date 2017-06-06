@@ -37,14 +37,15 @@ int main(int argc, char** argv) {
 	clock_t t2;
 
 	// Read cities from file
-	if (DEBUG)
-		cout << "Reading cities" << endl;
-	tsp.readCities();
-	if (DEBUG)
-		cout << "Time to read cities: "
-				<< ((float) (clock() - t)) / CLOCKS_PER_SEC << " s\n";
+	// if (DEBUG)
+	// 	cout << "Reading cities" << endl;
+	// tsp.readInput();
+	// if (DEBUG)
+	// 	cout << "Time to read cities: "
+	// 			<< ((float) (clock() - t)) / CLOCKS_PER_SEC << " s\n";
 
 	cout << "number of cities: " << tsp.n << endl;
+	tsp.printCities();
 
 	// Fill N x N matrix with distances between nodes
 	if (DEBUG)
@@ -102,7 +103,7 @@ int main(int argc, char** argv) {
 	else if (n >= 6500)
 		increment = 500;
 
-	int remaining = n;
+	int remaining = 1;
 
 	// Start at node zero
 	int node = 0;
@@ -119,7 +120,7 @@ int main(int argc, char** argv) {
 		}
 
 		for (long t = 0; t < stop_here; t++) {
-			//cout << "Thread " << count << " starting at node " << node << endl;
+			cout << "Thread " << count << " starting at node " << node << endl;
 			threads[t].start_node = node;
 			threads[t].my_id = count;
 			threads[t].mytsp = &tsp;
@@ -150,16 +151,16 @@ int main(int argc, char** argv) {
 
 	// Store best path
 	tsp.create_tour(bestIndex);
-	tsp.make_shorter();
-	tsp.make_shorter();
-	tsp.make_shorter();
-	tsp.make_shorter();
-	tsp.make_shorter();
+	// tsp.make_shorter();
+	// tsp.make_shorter();
+	// tsp.make_shorter();
+	// tsp.make_shorter();
+	// tsp.make_shorter();
 
 	cout << "\nFinal length: " << tsp.pathLength << endl;
 
 	// Print to file
-	tsp.printResult();
+	tsp.printPath();
 
 	if (DEBUG)
 		cout << "\nTotal time: " << ((float) (clock() - t)) / CPS << "s\n";
