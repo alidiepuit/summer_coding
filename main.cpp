@@ -30,7 +30,7 @@ int main(int argc, char** argv) {
 
 	// Create new tsp object
 	TSP tsp(f, o);
-	int n = tsp.get_size();
+	long long n = tsp.get_size();
 
 	// Start timing
 	clock_t t = clock();
@@ -52,6 +52,7 @@ int main(int argc, char** argv) {
 		cout << "\nFilling matrix" << endl;
 	t2 = clock();
 	tsp.fillMatrix_threads();
+	// tsp.initGraph();
 	if (DEBUG)
 		cout << "Time to fill matrix: " << ((float) (clock() - t2)) / CPS
 				<< " s\n";
@@ -81,12 +82,12 @@ int main(int argc, char** argv) {
 	// Create array of thread objects
 	MyThread threads[NUM_THREADS];
 
-	int best = INT_MAX;
-	int bestIndex;
-	int stop_here = NUM_THREADS;
+	long long best = INT_MAX;
+	long long bestIndex;
+	long long stop_here = NUM_THREADS;
 
 	// Amount to increment starting node by each time
-	int increment = 1; // by 1 if n < 1040
+	long long increment = 1; // by 1 if n < 1040
 
 	if (n >= 600 && n < 1040)
 		increment = 3;
@@ -103,13 +104,13 @@ int main(int argc, char** argv) {
 	else if (n >= 6500)
 		increment = 500;
 
-	int remaining = 1;
+	long long remaining = 1;
 
 	// Start at node zero
-	int node = 0;
+	long long node = 0;
 
 	// Count to get thread ids
-	int count = 0;
+	long long count = 0;
 
 	while (remaining >= increment) {
 		// Keep track iteration when last node will be reached
@@ -151,16 +152,16 @@ int main(int argc, char** argv) {
 
 	// Store best path
 	tsp.create_tour(bestIndex);
-	// tsp.make_shorter();
-	// tsp.make_shorter();
-	// tsp.make_shorter();
-	// tsp.make_shorter();
-	// tsp.make_shorter();
+	tsp.make_shorter();
+	tsp.make_shorter();
+	tsp.make_shorter();
+	tsp.make_shorter();
+	tsp.make_shorter();
 
-	cout << "\nFinal length: " << tsp.pathLength << endl;
+	cout << "\nFinal length: " << tsp.pathLength-tsp.getMaxValue() << endl;
 
-	// Print to file
-	tsp.printPath();
+	// Prlong long to file
+	tsp.printResult();
 
 	if (DEBUG)
 		cout << "\nTotal time: " << ((float) (clock() - t)) / CPS << "s\n";

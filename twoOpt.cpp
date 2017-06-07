@@ -9,13 +9,13 @@
 
 // Input: edge 1's v, edge 2's u
 // Remove edge 1 and edge 2, reconnect using new path
-void reverse(vector<int> &path, int start, int end, int n)
+void reverse(vector<long long> &path, long long start, long long end, long long n)
 {
 	while (end - start > 0)
 	{
 		// Start, end is relative value to the start,
 		// the index is start|slut % size
-		int temp = path[start % n];
+		long long temp = path[start % n];
 		path[start % n] = path[end % n];
 		path[end % n] = temp;
 		start++;
@@ -24,7 +24,7 @@ void reverse(vector<int> &path, int start, int end, int n)
 }
 
 
-int is_path_shorter(int **graph, int v1, int v2, int v3, int v4, int &total_dist)
+long long is_path_shorter(long long **graph, long long v1, long long v2, long long v3, long long v4, long long &total_dist)
 {
 	if ((graph[v1][v3] + graph[v2][v4]) < (graph[v1][v2] + graph[v3][v4]))
 	{
@@ -37,23 +37,23 @@ int is_path_shorter(int **graph, int v1, int v2, int v3, int v4, int &total_dist
 
 
 // Non-looping version of two-opt heuristic
-int twoOpt(int **graph, vector<int> &path, int &pathLength, int n)
+long long twoOpt(long long **graph, vector<long long> &path, long long &pathLength, long long n)
 {
-	int counter = 0;
-	int term_cond = 5;
-	int old_distance = pathLength;
-	//int size = path.size();
-	int v1, v2, u1, u2;
+	long long counter = 0;
+	long long term_cond = 5;
+	long long old_distance = pathLength;
+	//long long size = path.size();
+	long long v1, v2, u1, u2;
 
 	// Iterate over each edge
-	for (int i = 0; i < n; i++)
+	for (long long i = 0; i < n; i++)
 	{
 		// first edge
 		u1 = i;
 		v1 = (i+1) % n; // wrap around to first node if u1 is last node
 
 		// Skip adjacent edges, start with node one past v1
-		for (int j = i + 2; (j + 1) % n != i; j++)
+		for (long long j = i + 2; (j + 1) % n != i; j++)
 		{
 			// mod by length to go back to beginning
 			u2 = j % n;
@@ -85,9 +85,9 @@ int twoOpt(int **graph, vector<int> &path, int &pathLength, int n)
 
 
 
-int get_path_length(int **graph, vector<int> &path, int size){
-	int length = 0;
-	for (int i = 0; i < size-1; i++)
+long long get_path_length(long long **graph, vector<long long> &path, long long size){
+	long long length = 0;
+	for (long long i = 0; i < size-1; i++)
 	{
 		length += graph[path[i]][path[i+1]];
 	}

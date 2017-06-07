@@ -22,6 +22,7 @@
 #include <string>
 #include <stdio.h>
 #include <vector>
+#include <map>
 
 #include "twoOpt.h"
 
@@ -39,7 +40,12 @@ using namespace std;
 // Calculate highest index controlled by thread id
 #define END_AT(id,p,n) (START_AT((id)+1,p,n)-1)
 
+//const direction
+static const long long DIRX[4] = { 0,-1, 0, 1};
+static const long long DIRY[4] = {-1, 0, 1, 0};
 
+#define MAXVAL (1<<20)
+#define ll long long
 
 class TSP
 {
@@ -48,8 +54,8 @@ private:
 	// x and y coords of a node
 	struct City
 	{
-		int x;
-		int y;
+		long long x;
+		long long y;
 	};
 
 	// Filename supplied on command line to read from
@@ -59,11 +65,11 @@ private:
 	string outFname;
 
 	// List of odd nodes
-	vector<int>odds;
+	vector<long long>odds;
 
 	// Smaller cost matrix used to store distances between odd nodes
 	// Used to find minimum matching on odd nodes
-	int **cost;
+	long long **cost;
 
 	// Initialization function
 	void getNodeCount();
@@ -72,7 +78,7 @@ private:
 	void findOdds();
 
 	// Prim helper function
-	int minKey(int key[], bool mstSet[]);
+	long long minKey(long long key[], bool mstSet[]);
 
 
 protected:
@@ -80,43 +86,46 @@ protected:
 
 public:
 	// Number of nodes
-	int n;
+	long long n;
 
 	//Gas tank size
-	int _tankSize;
+	long long _tankSize;
 
 	//Map size
-	int _row; //row
-	int _col; //column
+	long long _row; //row
+	long long _col; //column
 
 	//Map
-	int **_originMap;
+	long long **_originMap;
+
+
+	long long **_graphId;
 
 	// euler circuit
-	vector<int>circuit;
+	vector<long long>circuit;
 
 	// Store cities and coords read in from file
 	vector<City>cities;
 
 	// Full n x n cost matrix of distances between each city
-	int **graph;
+	long long **graph;
 
 	// Current shortest path length
-	int pathLength;
+	long long pathLength;
 
 
 	// Adjacency list
 	// Array of n dynamic arrays, each holding a list of nodes it's index is attached to
-	vector<int> *adjlist;
+	vector<long long> *adjlist;
 
 
-	int start_idx[THREADS];
+	long long start_idx[THREADS];
 
-	int end_idx[THREADS];
+	long long end_idx[THREADS];
 
 	// n x 2 array to store length of TSP path starting at each node
 	// col 0 => starting index   col 1 => path length from that node
-	int **path_vals;
+	long long **path_vals;
 
 
 	// Constructor
@@ -126,7 +135,7 @@ public:
 	~TSP();
 
 	// Calculate distance
-	int get_distance(struct City c1, struct City c2);
+	long long get_distance(struct City c1, struct City c2);
 
 
 	// Initialization functions
@@ -142,15 +151,15 @@ public:
 
 	// Find best node to start euler at
 	// Doesn't create tour, just checks
-	int find_best_path(int);
+	long long find_best_path(ll);
 
 	// Create tour starting at specified node
-	void create_tour(int);
+	void create_tour(ll);
 
 	// Private functions implemented by create_tour() and find_best_path()
-	void euler (int pos, vector<int> &);
+	void euler (long long pos, vector<long long> &);
 	//void euler(int);
-	void make_hamilton(vector<int> &, int&);
+	void make_hamilton(vector<long long> &, ll&);
 
 	// Calls twoOpt function
 	void make_shorter();
@@ -164,7 +173,12 @@ public:
 	void printPath();
 
 	// Get node count
-	int get_size() {return n;};
+	long long get_size() {return n;};
+
+	void initGraph();
+	void floatMatrix(long long x, long long y, long long tankSize);
+	bool isValidPosition(ll, ll);
+	long long getMaxValue();
 };
 
 #endif /* MWM_H_ */

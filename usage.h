@@ -3,7 +3,7 @@
 #ifndef USAGE_H
 #define USAGE_H
 
-// Print correct usage to command line
+// Prlong long correct usage to command line
 static void usage() {
 	printf("Usage: ./tsp inputfile\n");
 	printf("where inputfile is in the format:\n");
