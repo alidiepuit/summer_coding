@@ -91,7 +91,8 @@ long long get_path_length(long long **graph, vector<long long> &path, long long 
 	{
 		length += graph[path[i]][path[i+1]];
 	}
-	length += graph[path[size-1]] [path[0]]; // back home
+	//in summer coding, we don't need go back home
+	// length += graph[path[size-1]] [path[0]]; // back home
 	return length;
 }
 

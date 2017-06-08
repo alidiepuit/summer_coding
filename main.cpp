@@ -158,7 +158,7 @@ int main(int argc, char** argv) {
 	tsp.make_shorter();
 	tsp.make_shorter();
 
-	cout << "\nFinal length: " << tsp.pathLength-tsp.getMaxValue() << endl;
+	cout << "\nFinal length: " << tsp.pathLength << endl;
 
 	// Prlong long to file
 	tsp.printResult();

@@ -44,7 +44,7 @@ using namespace std;
 static const long long DIRX[4] = { 0,-1, 0, 1};
 static const long long DIRY[4] = {-1, 0, 1, 0};
 
-#define MAXVAL (1<<20)
+#define MAXVAL 10000
 #define ll long long
 
 class TSP

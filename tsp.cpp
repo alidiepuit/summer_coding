@@ -143,7 +143,7 @@ void *F(void* args){
 		for (long long j = i; j < tsp->n; j++) {
 			// Don't delete this line  it's supposed to be there.
 			// graph[i][j] = graph[j][i] =  tsp->get_distance(tsp->cities[i], tsp->cities[j]);
-			graph[i][j] = graph[j][i] = tsp->getMaxValue();
+			graph[i][j] = graph[j][i] = MAXVAL;
 		}
 	}
 
@@ -154,10 +154,6 @@ void *F(void* args){
 	//t = clock();
 	//cout << "thread " << tid << " time: " << 1000*(((float)clock())/CLOCKS_PER_SEC) << " s"<< endl;
 	pthread_exit(NULL);
-}
-
-long long TSP::getMaxValue() {
-	return 10000 < _tankSize ? _tankSize : 10000;
 }
 
 void TSP::initGraph() {
@@ -469,8 +465,9 @@ void TSP::make_hamilton(vector<long long> &path, long long &path_dist) {
 		}
 	}
 
+	// for summer coding, we don't need go back to root
 	// add the distance back to the root
-	path_dist += graph[*curr][*next];
+	// path_dist += graph[*curr][*next];
 }
 
 void TSP::create_tour(long long pos){
@@ -498,10 +495,9 @@ long long TSP::find_best_path (long long pos) {
 
 	// Optimize
 	twoOpt(graph, path, length, n);
-	twoOpt(graph, path, length, n);
-	twoOpt(graph, path, length, n);
-	twoOpt(graph, path, length, n);
-	twoOpt(graph, path, length, n);
+
+	length = get_path_length(graph, path, n);
+	// cout << __LINE__ << " " << length << endl;
 
 	return length;
 }
@@ -520,7 +516,7 @@ void TSP::make_shorter(){
 void TSP::printResult(){
 	ofstream outputStream;
 	outputStream.open(outFname.c_str(), ios::out);
-	outputStream << pathLength-getMaxValue() << endl;
+	outputStream << pathLength << endl;
 	for (vector<long long>::iterator it = circuit.begin(); it != circuit.end(); ++it) {
 	//for (vector<long long>::iterator it = circuit.begin(); it != circuit.end()-1; ++it) {
 		outputStream << *it << endl;
@@ -537,7 +533,7 @@ void TSP::printPath(){
 	}
 	cout << *(circuit.end()-1) << " to " << circuit.front();
 
-	cout << "\nLength: " << pathLength-getMaxValue() << endl << endl;
+	cout << "\nLength: " << pathLength << endl << endl;
 };
 
 void TSP::printEuler() {
