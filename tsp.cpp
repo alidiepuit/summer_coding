@@ -18,10 +18,15 @@ TSP::TSP(string in, string out){
 	graph = new ll*[n];
 	for (long long i = 0; i < n; i++) {
 		graph[i] = new ll[n];
+		// _nearestGasStation[i] = new vector<pair<int,int> >();
 		for (long long j = 0; j < n; j++) {
 			graph[i][j] = 0;
 		}
 	}
+
+	_nearestGasStation = new vector<pair<int,int> > [n];
+	// _nearestGasStation[1].push_back(make_pair(100,10));
+	// cout << _nearestGasStation[1].front().first << endl;
 
 	cost = new ll*[n];
 	for (long long i = 0; i < n; i++) {
@@ -35,6 +40,15 @@ TSP::TSP(string in, string out){
 
 	// Adjacency lsit
 	adjlist = new vector<long long> [n];
+
+
+	_costGasStationToCity = new ll*[_numGasStation];
+	for (long long i = 0; i < _numGasStation; i++) {
+		_costGasStationToCity[i] = new ll[n];
+		for (long long j = 0; j < _col; j++) {
+			_costGasStationToCity[i][j] = -1;
+		}
+	}
 };
 
 TSP::~TSP(){
@@ -54,10 +68,15 @@ TSP::~TSP(){
 	delete [] cost;
 	delete [] adjlist;
 
-	// for (long long i = 0; i < _row; i++) {
-	// 	delete [] _originMap;
-	// }
-	// delete [] _originMap;
+	for (long long i = 0; i < n; i++) {
+		delete [] _originMap[i];
+	}
+	delete [] _originMap;
+
+	for (long long i = 0; i < _numGasStation; i++) {
+		delete [] _costGasStationToCity[i];
+	}
+	delete [] _costGasStationToCity;
 }
 
 void TSP::readInput(){
@@ -81,18 +100,22 @@ void TSP::readInput(){
 	inStream >> _row >> _col;
 
 	// Allocate memory
-	_originMap = new ll*[_row];
+	_originMap = new int*[_row];
 	_graphId = new ll*[_row];
+	_graphIdGasStation = new ll*[_row];
 	for (long long i = 0; i < _row; i++) {
-		_originMap[i] = new ll[_col];
+		_originMap[i] = new int[_col];
 		_graphId[i] = new ll[_col];
+		_graphIdGasStation[i] = new ll[_col];
 		for (long long j = 0; j < _col; j++) {
 			_originMap[i][j] = 0;
 			_graphId[i][j] = -1;
+			_graphIdGasStation[i][j] = -1;
 		}
 	}
 
 	long long count = 1;
+	long long countGasStation = 0;
 	//first position
 	struct City c = {beg_x-1, beg_y-1};
 	cities.push_back(c);
@@ -107,10 +130,19 @@ void TSP::readInput(){
 				cities.push_back(c);
 				count++;
 			}
+
+			if (_originMap[i][j] == 2) {
+				_graphIdGasStation[i][j] = countGasStation;
+				countGasStation++;
+			}
 			
 		}
 
+
 	n = count;
+	_numGasStation = countGasStation;
+
+
 	inStream.close();
 };
 
@@ -139,13 +171,13 @@ void *F(void* args){
 
 	//clock_t t = clock();
 	// fill matrix with distances from every city to every other city
-	for (long long i = start; i <= end; i++) {
-		for (long long j = i; j < tsp->n; j++) {
+	// for (long long i = start; i <= end; i++) {
+	// 	for (long long j = i; j < tsp->n; j++) {
 			// Don't delete this line  it's supposed to be there.
 			// graph[i][j] = graph[j][i] =  tsp->get_distance(tsp->cities[i], tsp->cities[j]);
-			graph[i][j] = graph[j][i] = MAXVAL;
-		}
-	}
+	// 		graph[i][j] = graph[j][i] = -1;
+	// 	}
+	// }
 
 	// cout << __LINE__ << "fuck" << endl;
 	tsp->initGraph();
@@ -158,47 +190,9 @@ void *F(void* args){
 
 void TSP::initGraph() {
 	for (vector<City>::iterator it = cities.begin(); it != cities.end(); ++it) {
-		// cout << it->x << " " << it->y << endl;
+		// cout << "begin " << it->x << " " << it->y << endl;
 		floatMatrix(it->x, it->y, _tankSize);
 	}
-}
-
-void TSP::floatMatrix(long long x, long long y, long long tankSize) {
-    queue<pair<int, City> > vec;
-    struct City c = {x, y};
-    vec.push(make_pair(0, c));
-	map<int,bool> visitedGraph;
-    long long idCity = _graphId[x][y];
-
-    while (vec.size() > 0) {
-        pair<int, City> p = vec.front();
-        vec.pop();
-        City city = p.second;
-        long long maxV = p.first;
-        // cout << maxV << " " << city.x << " " << city.y << " " << _graphId[city.x][city.y] << endl;
-        //can't go
-        if (maxV == tankSize) continue;
-
-        visitedGraph[city.x*_row+city.y] = true;
-        
-        for(long long i = 0; i < 4; i++) {
-            long long newx = city.x + DIRX[i];
-            long long newy = city.y + DIRY[i];
-            struct City c = {newx, newy};
-            // cout << "check isValidPosition " << newx << " " << newy << " " << isValidPosition(newx, newy)  << " " << visitedGraph[newx*_row+newy] << endl;
-            if (isValidPosition(newx, newy) && !visitedGraph[newx*_row+newy]) {
-                visitedGraph[newx*_row+newy] = true;
-                vec.push(make_pair(maxV+1,c));
-
-                //check whether visit city
-                if (_originMap[newx][newy] == 3) {
-                	graph[idCity][_graphId[newx][newy]] = maxV+1;
-                	graph[_graphId[newx][newy]][idCity] = maxV+1;
-                }
-            }
-        }
-    }
-
  //    cout << "done" << endl;
 	// for(long long i = 0; i < n; i++) {
  //    	for(long long j = 0; j < n; j++) {
@@ -206,10 +200,67 @@ void TSP::floatMatrix(long long x, long long y, long long tankSize) {
  //    	}
  //    	cout << endl;
  //    }
+}
+
+void TSP::floatMatrix(long long x, long long y, long long tankSize) {
+    queue<pair<int, City> > vec;
+    struct City c = {x, y};
+    vec.push(make_pair(0, c));
+	int visitedGraph[_row+1][_col+1];
+	memset(visitedGraph, -1, (_row+1) * (_col+1) * sizeof(int));
+    long long idCity = _graphId[x][y];
+
+    long long maxV = 0;
+    // cout << "fuck " << c.x << " " << c.y << endl;
+    visitedGraph[c.x][c.y] = maxV;
+    while (vec.size() > 0) {
+        pair<ll, City> p = vec.front();
+        vec.pop();
+        City city = p.second;
+        maxV = p.first;
+        //can't go
+        // cout << "visit " << city.x << " " << city.y << endl;
+        if (maxV == tankSize) {
+        	// cout << "read quota " << maxV << " " << tankSize << endl;
+        	continue;
+		}
+        
+        for(int i = 0; i < 4; i++) {
+            int newx = city.x + DIRX[i];
+            int newy = city.y + DIRY[i];
+            struct City c = {newx, newy};
+            // cout << "check isValidPosition " << newx << " " << newy << " " << isValidPosition(newx, newy)  << " " << visitedGraph[newx][newy] << endl;
+            if (isValidPosition(newx, newy) && visitedGraph[newx][newy]==-1 && maxV+1 <= _tankSize) {
+                visitedGraph[newx][newy] = maxV+1;
+                vec.push(make_pair(maxV+1,c));
+
+                //check whether visit city
+                if (_originMap[newx][newy] == 3) {
+                	graph[idCity][_graphId[newx][newy]] = maxV+1;
+                	graph[_graphId[newx][newy]][idCity] = maxV+1;
+                }
+
+                //check whether visit gasstation
+                if (_originMap[newx][newy] == 2) {
+                	long long idGasStation = _graphIdGasStation[newx][newy];
+                	_costGasStationToCity[idGasStation][idCity] = maxV+1;
+                	_nearestGasStation[idCity].push_back(make_pair(newx,newy));
+                }
+            }
+        }
+    }
+
+ //    cout << "done" << endl;
+	// for(long long i = 0; i < _row; i++) {
+ //    	for(long long j = 0; j < _col; j++) {
+ //    		cout << visitedGraph[i][j] << " ";
+ //    	}
+ //    	cout << endl;
+ //    }
     
 }
 
-bool TSP::isValidPosition(long long x, long long y) {
+bool TSP::isValidPosition(int x, int y) {
 	return 0 <= x && x < _row && 0 <= y && y < _col && _originMap[x][y] != 0;
 }
 
@@ -305,12 +356,14 @@ void TSP::findMST_old() {
 		// Add vertex v to the MST
 		in_mst[v] = true;
 
+		// cout << "find v " << v << endl;
+
 		// Look at each vertex u adjacent to v that's not yet in mst
 		for (long long u = 0; u < n; u++) {
-			if (graph[v][u] && in_mst[u] == false && graph[v][u] < key[u]) {
+			if (graph[v][u] > 0 && in_mst[u] == false && graph[v][u] < key[u]) {
 				// Update parent index of u
 				parent[u] = v;
-
+				// cout << "find u " << u << " " << graph[v][u] << endl;
 				// Update the key only if dist is smaller than key[u]
 				key[u] = graph[v][u];
 			}
@@ -366,6 +419,10 @@ void TSP::perfect_matching() {
 	// Find nodes with odd degrees in T to get subgraph O
 	findOdds();
 
+	// for (vector<long long>::iterator it = odds.begin(); it != odds.end(); ++it) {
+	// 	cout << *it << endl;
+	// }
+
 	// for each odd node
 	while (!odds.empty()) {
 		first = odds.begin();
@@ -374,7 +431,7 @@ void TSP::perfect_matching() {
 		length = std::numeric_limits<long long>::max();
 		for (; it != end; ++it) {
 			// if this node is closer than the current closest, update closest and length
-			if (graph[*first][*it] < length) {
+			if (graph[*first][*it] > 0 && graph[*first][*it] < length) {
 				length = graph[*first][*it];
 				closest = *it;
 				tmp = it;
@@ -390,7 +447,7 @@ void TSP::perfect_matching() {
 
 // Take reference to a path vector
 // so can either modify actual euler path or a copy of it
-void TSP::euler (long long pos, vector<long long> &path) {
+void TSP::euler(long long pos, vector<long long> &path) {
 	/////////////////////////////////////////////////////////
 	// Based on this algorithm:
 	//	http://www.graph-magics.com/articles/euler.php
@@ -414,6 +471,7 @@ void TSP::euler (long long pos, vector<long long> &path) {
 		if (temp[pos].size() == 0) {
 			// add it to circuit,
 			path.push_back(pos);
+			// cout << "vertext has no neighbors " << pos << endl;
 			// remove the last vertex from the stack and set it as the current one.
 			long long last = stk.top();
 			stk.pop();
@@ -422,6 +480,7 @@ void TSP::euler (long long pos, vector<long long> &path) {
 		// Otherwise (in case it has neighbors)
 		else {
 			// add the vertex to the stack,
+			// cout << "Otherwise " << pos << endl;
 			stk.push(pos);
 			// take any of its neighbors,
 			long long neighbor = temp[pos].back();
@@ -456,6 +515,7 @@ void TSP::make_hamilton(vector<long long> &path, long long &path_dist) {
 	while ( next != path.end() ) {
 		// if we haven't been to the next city yet, go there
 		if (!visited[*next]) {
+			// cout << *curr << " " << *next << " " << graph[*curr][*next] << endl;
 			path_dist += graph[*curr][*next];
 			curr = next;
 			visited[*curr] = true;
@@ -474,6 +534,8 @@ void TSP::create_tour(long long pos){
 
 	// call euler with actual circuit vector
 	euler(pos, circuit);
+
+	// printEuler();
 
 	// make it hamiltonian
 	// pass actual vars
@@ -516,11 +578,12 @@ void TSP::make_shorter(){
 void TSP::printResult(){
 	ofstream outputStream;
 	outputStream.open(outFname.c_str(), ios::out);
-	outputStream << pathLength << endl;
+	// outputStream << pathLength << endl;
 	for (vector<long long>::iterator it = circuit.begin(); it != circuit.end(); ++it) {
 	//for (vector<long long>::iterator it = circuit.begin(); it != circuit.end()-1; ++it) {
-		outputStream << *it << endl;
+		outputStream << cities[*it].x << " " << cities[*it].y << endl;
 	}
+
 	//outputStream << *(circuit.end()-1);
 	outputStream.close();
 };

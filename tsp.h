@@ -41,8 +41,8 @@ using namespace std;
 #define END_AT(id,p,n) (START_AT((id)+1,p,n)-1)
 
 //const direction
-static const long long DIRX[4] = { 0,-1, 0, 1};
-static const long long DIRY[4] = {-1, 0, 1, 0};
+static const int DIRX[4] = { 0,-1, 0, 1};
+static const int DIRY[4] = {-1, 0, 1, 0};
 
 #define MAXVAL 10000
 #define ll long long
@@ -54,8 +54,8 @@ private:
 	// x and y coords of a node
 	struct City
 	{
-		long long x;
-		long long y;
+		int x;
+		int y;
 	};
 
 	// Filename supplied on command line to read from
@@ -85,21 +85,28 @@ protected:
 
 
 public:
-	// Number of nodes
+	// Number of cities
 	long long n;
 
+	// Number of gas stations
+	int _numGasStation;
+
 	//Gas tank size
-	long long _tankSize;
+	int _tankSize;
 
 	//Map size
-	long long _row; //row
-	long long _col; //column
+	int _row; //row
+	int _col; //column
 
 	//Map
-	long long **_originMap;
+	int **_originMap;
 
 
 	long long **_graphId;
+
+	vector<pair<int,int> > *_nearestGasStation;
+	long long **_costGasStationToCity;
+	long long **_graphIdGasStation;
 
 	// euler circuit
 	vector<long long>circuit;
@@ -177,7 +184,7 @@ public:
 
 	void initGraph();
 	void floatMatrix(long long x, long long y, long long tankSize);
-	bool isValidPosition(ll, ll);
+	bool isValidPosition(int, int);
 	long long getMaxValue();
 };
 

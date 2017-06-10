@@ -45,7 +45,7 @@ int main(int argc, char** argv) {
 	// 			<< ((float) (clock() - t)) / CLOCKS_PER_SEC << " s\n";
 
 	cout << "number of cities: " << tsp.n << endl;
-	tsp.printCities();
+	// tsp.printCities();
 
 	// Fill N x N matrix with distances between nodes
 	if (DEBUG)
@@ -152,11 +152,11 @@ int main(int argc, char** argv) {
 
 	// Store best path
 	tsp.create_tour(bestIndex);
-	tsp.make_shorter();
-	tsp.make_shorter();
-	tsp.make_shorter();
-	tsp.make_shorter();
-	tsp.make_shorter();
+	// tsp.make_shorter();
+	// tsp.make_shorter();
+	// tsp.make_shorter();
+	// tsp.make_shorter();
+	// tsp.make_shorter();
 
 	cout << "\nFinal length: " << tsp.pathLength << endl;
 
