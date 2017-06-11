@@ -57,6 +57,13 @@ int main(int argc, char** argv) {
 		cout << "Time to fill matrix: " << ((float) (clock() - t2)) / CPS
 				<< " s\n";
 
+	// for(int i = 0; i < tsp.n; i++) {
+	// 	for(int j = 0; j < tsp.n; j++) {
+	// 		cout << tsp.graph[i][j] << " ";
+	// 	}
+	// 	cout << endl;
+	// }
+
 	// Find a MST T in graph G
 	if (DEBUG)
 		cout << "\nFinding mst" << endl;
@@ -147,23 +154,22 @@ int main(int argc, char** argv) {
 	}
 
 	end = clock();
-	cout << "\nbest: " << best << " @ index " << bestIndex << endl;
-	cout << "time: " << ((float) (end - start)) / CPS << "s\n";
+	// cout << "\nbest: " << best << " @ index " << bestIndex << endl;
+	// cout << "time: " << ((float) (end - start)) / CPS << "s\n";
 
 	// Store best path
 	tsp.create_tour(bestIndex);
-	// tsp.make_shorter();
-	// tsp.make_shorter();
-	// tsp.make_shorter();
-	// tsp.make_shorter();
-	// tsp.make_shorter();
 
 	cout << "\nFinal length: " << tsp.pathLength << endl;
 
-	// Prlong long to file
-	tsp.printResult();
-
 	if (DEBUG)
 		cout << "\nTotal time: " << ((float) (clock() - t)) / CPS << "s\n";
+
+	// tsp.printEuler();
+
+	tsp.find_best_path(0);
+
+	// Prlong long to file
+	tsp.printResult();
 	return 0;
 }

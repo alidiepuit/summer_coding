@@ -182,10 +182,15 @@ public:
 	// Get node count
 	long long get_size() {return n;};
 
-	void initGraph();
-	void floatMatrix(long long x, long long y, long long tankSize);
+	void initGraph(ll,ll);
+	void floatMatrix(int x, int y, long long tankSize);
 	bool isValidPosition(int, int);
 	long long getMaxValue();
+	pair<int,int> find_optimal_gas_station(ll, ll, ll);
+	void try_to_find_optimal_solution(vector<pair<int,int> >, ll, ll, ll[], ll, ll);
+	vector<pair<int,int> > finalPath;
+	ll maxNumCitiesFound;
+	bool stop;
 };
 
 #endif /* MWM_H_ */
