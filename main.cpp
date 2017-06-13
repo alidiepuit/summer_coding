@@ -167,8 +167,9 @@ int main(int argc, char** argv) {
 
 	// tsp.printEuler();
 
-	tsp.find_best_path(0);
-
+	// tsp.find_best_path(0);
+	tsp.find_best_path_2();
+	
 	// Prlong long to file
 	tsp.printResult();
 	return 0;

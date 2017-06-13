@@ -23,6 +23,7 @@
 #include <stdio.h>
 #include <vector>
 #include <map>
+#include <set>
 
 #include "twoOpt.h"
 
@@ -113,9 +114,11 @@ public:
 
 	// Store cities and coords read in from file
 	vector<City>cities;
+	vector<City>_listGasStation;
 
 	// Full n x n cost matrix of distances between each city
 	long long **graph;
+	ll **_graphGasStation;
 
 	// Current shortest path length
 	long long pathLength;
@@ -187,10 +190,19 @@ public:
 	bool isValidPosition(int, int);
 	long long getMaxValue();
 	pair<int,int> find_optimal_gas_station(ll, ll, ll);
-	void try_to_find_optimal_solution(vector<pair<int,int> >, ll, ll, ll[], ll, ll);
-	vector<pair<int,int> > finalPath;
+	void try_to_find_optimal_solution(vector<pair<int,int> >, ll, ll, ll, ll);
+	vector<pair<int,int> > _finalPath;
 	ll maxNumCitiesFound;
 	bool stop;
+	ll *_fixPath;
+
+	void find_best_path_2();
+	pair<vector<ll>, pair<int,int> > try_to_find_maximum_heart_has_same_gas_station(ll, ll);
+	pair<vector<pair<int,int> >, ll> greedy_single_gas_station(vector<ll>, pair<int,int>, ll);
+
+	//gas station
+	void initGraphGasStation();
+	void floatMatrixGasStation(int, int, ll);
 };
 
 #endif /* MWM_H_ */
