@@ -158,9 +158,9 @@ int main(int argc, char** argv) {
 	// cout << "time: " << ((float) (end - start)) / CPS << "s\n";
 
 	// Store best path
-	tsp.create_tour(bestIndex);
+	// tsp.create_tour(bestIndex);
 
-	cout << "\nFinal length: " << tsp.pathLength << endl;
+	// cout << "\nFinal length: " << tsp.pathLength << endl;
 
 	if (DEBUG)
 		cout << "\nTotal time: " << ((float) (clock() - t)) / CPS << "s\n";
@@ -168,7 +168,7 @@ int main(int argc, char** argv) {
 	// tsp.printEuler();
 
 	// tsp.find_best_path(0);
-	tsp.find_best_path_2();
+	// tsp.find_best_path_2();
 	
 	// Prlong long to file
 	tsp.printResult();

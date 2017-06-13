@@ -106,6 +106,7 @@ public:
 	long long **_graphId;
 
 	vector<pair<int,int> > *_nearestGasStation;
+	vector<pair<int,int> > *_nearestCity;
 	long long **_costGasStationToCity;
 	long long **_graphIdGasStation;
 
@@ -201,8 +202,10 @@ public:
 	pair<vector<pair<int,int> >, ll> greedy_single_gas_station(vector<ll>, pair<int,int>, ll);
 
 	//gas station
-	void initGraphGasStation();
+	void initGraphGasStation(ll, ll);
 	void floatMatrixGasStation(int, int, ll);
+	pair<int,int> _positionStart;
+	vector< vector<ll> > _connectedGasStation;
 };
 
 #endif /* MWM_H_ */

@@ -25,8 +25,7 @@ TSP::TSP(string in, string out){
 	}
 
 	_nearestGasStation = new vector<pair<int,int> > [n];
-	// _nearestGasStation[1].push_back(make_pair(100,10));
-	// cout << _nearestGasStation[1].front().first << endl;
+	_nearestCity = new vector<pair<int,int> > [_numGasStation];
 
 	cost = new ll*[n];
 	for (long long i = 0; i < n; i++) {
@@ -47,6 +46,14 @@ TSP::TSP(string in, string out){
 		_costGasStationToCity[i] = new ll[n];
 		for (long long j = 0; j < n; j++) {
 			_costGasStationToCity[i][j] = 0;
+		}
+	}
+
+	_graphGasStation = new ll*[_numGasStation];
+	for (ll i = 0; i < _numGasStation; i++) {
+		_graphGasStation[i] = new ll[_numGasStation];
+		for (ll j = 0; j < _numGasStation; j++) {
+			_graphGasStation[i][j] = 0;
 		}
 	}
 };
@@ -93,6 +100,7 @@ void TSP::readInput(){
 	//read init position
 	long long beg_x, beg_y;
 	inStream >> beg_x >> beg_y;
+	_positionStart = make_pair(beg_x-1, beg_y-1);
 
 	//read gas tank size
 	inStream >> _tankSize;
@@ -172,7 +180,7 @@ void *F(void* args){
 	//cout << "thread " << setw(4) << left << tid << setw(8) << left << " start: " << setw(5) << left << start;
 	//cout << setw(6) << left << " end: " << setw(5) << left << end << " load: " << end- start + 1 << endl;
 
-	tsp->initGraph(start, end);
+	tsp->initGraphGasStation(start, end);
 
 	//clock_t t = clock();
 	// fill matrix with distances from every city to every other city
@@ -182,6 +190,14 @@ void *F(void* args){
 			// graph[i][j] = graph[j][i] =  tsp->get_distance(tsp->cities[i], tsp->cities[j]);
 	// 	}
 	// }
+
+ //    cout << "print graph" << endl;
+	// for(long long i = 0; i < tsp->_numGasStation; i++) {
+ //    	for(long long j = 0; j < tsp->_numGasStation; j++) {
+ //    		cout << tsp->_graphGasStation[i][j] << " ";
+ //    	}
+ //    	cout << endl;
+ //    }
 
 	//t = clock() - t;
 	//t = clock();
@@ -195,13 +211,7 @@ void TSP::initGraph(ll start, ll end) {
 		// cout << "begin " << city.x << " " << city.y << endl;
 		floatMatrix(city.x, city.y, _tankSize);
 	}
- //    cout << "done" << endl;
-	// for(long long i = 0; i < n; i++) {
- //    	for(long long j = 0; j < n; j++) {
- //    		cout << graph[i][j] << " ";
- //    	}
- //    	cout << endl;
- //    }
+
 }
 
 void TSP::floatMatrix(int x, int y, long long tankSize) {
@@ -268,17 +278,10 @@ void TSP::floatMatrix(int x, int y, long long tankSize) {
   //   }
 }
 
-void TSP::initGraphGasStation() {
+void TSP::initGraphGasStation(ll start, ll end) {
 	// Allocate memory
-	_graphGasStation = new ll*[_numGasStation];
-	for (ll i = 0; i < _numGasStation; i++) {
-		_graphGasStation[i] = new ll[_numGasStation];
-		// _nearestGasStation[i] = new vector<pair<int,int> >();
-		for (ll j = 0; j < _numGasStation; j++) {
-			_graphGasStation[i][j] = 0;
-		}
-	}
-	for (ll i = 0; i < _numGasStation; i++) {
+	
+	for (ll i = start; i <= end; i++) {
 		City city = _listGasStation[i];
 		// cout << "begin " << city.x << " " << city.y << endl;
 		floatMatrixGasStation(city.x, city.y, _tankSize);
@@ -291,7 +294,7 @@ void TSP::floatMatrixGasStation(int x, int y, ll tankSize) {
     vec.push(make_pair(0, c));
 	int visitedGraph[_row+1][_col+1];
 	memset(visitedGraph, -1, (_row+1) * (_col+1) * sizeof(int));
-    long long idCity = _graphIdGasStation[x][y];
+    long long idGasStation = _graphIdGasStation[x][y];
 
     long long maxV = 0;
     // cout << "fuck " << c.x << " " << c.y << endl;
@@ -315,10 +318,21 @@ void TSP::floatMatrixGasStation(int x, int y, ll tankSize) {
                 visitedGraph[newx][newy] = maxV+1;
                 vec.push(make_pair(maxV+1,c));
 
-                //check whether visit city
+                //check whether visit gas station
                 if (_originMap[newx][newy] == 2) {
-                	_graphGasStation[idCity][_graphIdGasStation[newx][newy]] = maxV+1;
-                	_graphGasStation[_graphIdGasStation[newx][newy]][idCity] = maxV+1;
+                	_graphGasStation[idGasStation][_graphIdGasStation[newx][newy]] = maxV+1;
+                	_graphGasStation[_graphIdGasStation[newx][newy]][idGasStation] = maxV+1;
+                }
+
+                //check whether visit city
+                if (_originMap[newx][newy] == 3 || (newx == _positionStart.first && newy == _positionStart.second)) {
+                	long long idCity = _graphId[newx][newy];
+                	_costGasStationToCity[idGasStation][idCity] = maxV+1;
+                	_nearestCity[idGasStation].push_back(make_pair(newx,newy));
+                	// cout << idGasStation << " " << idCity << " " << maxV+1 << endl;
+                	if (maxV+1 <= tankSize / 2 || (newx == _positionStart.first && newy == _positionStart.second)) {
+                		_nearestGasStation[idCity].push_back(make_pair(x,y));
+            		}
                 }
             }
         }
@@ -332,9 +346,9 @@ bool TSP::isValidPosition(int x, int y) {
 void TSP::fillMatrix_threads(){
 	/////////////////////////////////////////////////////
 	/////////////////////////////////////////////////////
-	long long amount = (n / THREADS) * 0.2;
-	long long x = (n / THREADS) - amount;		// min amount given to threads
-	long long rem = n - (x * THREADS);
+	long long amount = (_numGasStation / THREADS) * 0.2;
+	long long x = (_numGasStation / THREADS) - amount;		// min amount given to threads
+	long long rem = _numGasStation - (x * THREADS);
 	long long half = THREADS/2 + 1;
 
 	long long pos = 0;
@@ -353,13 +367,13 @@ void TSP::fillMatrix_threads(){
 		end_idx[i] = pos;
 		pos++;
 	}
-	end_idx[THREADS-1] = n - 1;
+	end_idx[THREADS-1] = _numGasStation - 1;
 
 	long long rc; void *status;
-	data = new struct thread_data[n];
+	data = new struct thread_data[_numGasStation];
 
-	// allocate space for n thread ids
-	pthread_t *thread = new pthread_t[n];
+	// allocate space for _numGasStation thread ids
+	pthread_t *thread = new pthread_t[_numGasStation];
 	pthread_attr_t attr;
 
 	// Initialize and set thread detached attribute
@@ -396,13 +410,13 @@ void TSP::findMST_old() {
 	// edge (u, v), connecting a vertex v in the set A to
 	// the vertex u outside of set A
 	/////////////////////////////////////////////////////
-	long long key[n];   // Key values used to pick minimum weight edge in cut
-	bool in_mst[n];  // To represent set of vertices not yet included in MST
-	long long parent[n];
-	memset(parent, 0, n * sizeof(ll));
+	long long key[_numGasStation];   // Key values used to pick minimum weight edge in cut
+	bool in_mst[_numGasStation];  // To represent set of vertices not yet included in MST
+	long long parent[_numGasStation];
+	memset(parent, 0, _numGasStation * sizeof(ll));
 
 	// For each vertex v in V
-	for (long long v = 0; v < n; v++) {
+	for (long long v = 0; v < _numGasStation; v++) {
 		// Initialize all keys to infinity
 		key[v] = std::numeric_limits<long long>::max();
 
@@ -410,12 +424,19 @@ void TSP::findMST_old() {
 		in_mst[v] = false;
 	}
 
+	// cout << __LINE__ << " fuck " << endl;
+	// for(vector<pair<int,int> >::iterator it = _nearestGasStation[0].begin(); it != _nearestGasStation[0].end(); it++) {
+	// 	cout << (*it).first << " " << (*it).second << endl;
+	// }
+	pair<int,int> firstGasStation = *(_nearestGasStation[0].begin());
+	ll idFirstGasStation = _graphIdGasStation[firstGasStation.first][firstGasStation.second];
+	// cout << "fuck " << idFirstGasStation << endl;
 
 	// Node 0 is the root node so give it the lowest distance (key)
-	key[0] = 0;
-	parent[0] = -1; // First node is always root of MST
+	key[idFirstGasStation] = 0;
+	parent[idFirstGasStation] = -1; // First node is always root of MST
 
-	for (long long i = 0; i < n - 1; i++) {
+	for (long long i = 0; i < _numGasStation - 1; i++) {
 		// Find closest remaining (not in tree) vertex
 		// TO DO : This would be better represented by heap/pqueue
 		long long v = minKey(key, in_mst);
@@ -426,28 +447,112 @@ void TSP::findMST_old() {
 		// cout << "find v " << v << endl;
 
 		// Look at each vertex u adjacent to v that's not yet in mst
-		for (long long u = 0; u < n; u++) {
-			if (graph[v][u] > 0 && in_mst[u] == false && graph[v][u] < key[u]) {
+		for (long long u = 0; u < _numGasStation; u++) {
+			if (_graphGasStation[v][u] > 0 && in_mst[u] == false && _graphGasStation[v][u] < key[u]) {
 				// Update parent index of u
 				parent[u] = v;
-				// cout << "find u " << u << " " << v << " " << graph[v][u] << endl;
+				// cout << "find u " << u << " " << v << " " << _graphGasStation[v][u] << endl;
 				// Update the key only if dist is smaller than key[u]
-				key[u] = graph[v][u];
+				key[u] = _graphGasStation[v][u];
 			}
 		}
 	}
 
 	// cout << n << endl;
-	// for (long long v1 = 0; v1 < n; v1++) cout << "fuck " << v1 << " " << parent[v1] << endl;
+	// for (long long v1 = 0; v1 < _numGasStation; v1++) cout << "fuck " << v1 << " " << parent[v1] << endl;
 
 	// map relations from parent array onto matrix
-	for (long long v1 = 0; v1 < n; v1++) {
+	for (long long v1 = 0; v1 < _numGasStation; v1++) {
 		// there is an edge between v1 and parent[v1]
 		long long v2 = parent[v1];
 		if (v2 != -1) {
 			// cout << __LINE__ << " fuck " << v1 << " " << v2 << endl;
 			adjlist[v1].push_back(v2);
 			adjlist[v2].push_back(v1);
+		}
+	}
+
+	bool *mark = new bool[_numGasStation];
+	memset(mark, 0, _numGasStation * sizeof(bool));
+	ll t = _numGasStation-1;
+	for(int i = _numGasStation-1; i >= 0; i--)
+		if (!mark[i]) {
+			vector<ll> tmp;
+			t = i;
+			while (t != -1) {
+				tmp.push_back(t);
+				// cout << t << " ";
+				mark[t] = 1;
+				t = parent[t];
+			}
+			// cout << "======" << endl;
+			std::reverse(tmp.begin(),tmp.end());
+			_connectedGasStation.push_back(tmp);
+		}
+
+	memset(mark, 0, _numGasStation * sizeof(bool));
+
+	bool *markCity = new bool[n];
+	memset(markCity, 0, n * sizeof(bool));
+	_finalPath.push_back(_positionStart);
+	markCity[0] = 1;
+	ll idGasStation = 0;
+	bool hasCity = false;
+	for(vector< vector<ll> >::iterator it = _connectedGasStation.begin(); it != _connectedGasStation.end(); it++) {
+		vector<ll> connected = *it;
+		hasCity = false;
+		vector<pair<int,int> > tmpPath;
+		vector<ll> tempGasStation;
+		cout << "temp gas station: ";
+		for(vector<ll>::iterator gasStation = connected.begin(); gasStation != connected.end(); gasStation++) {
+			idGasStation =  *gasStation;
+			cout << idGasStation << " ";
+			tempGasStation.push_back(idGasStation);
+				// cout << "visited " << idGasStation << endl;
+				City coorGasStation = _listGasStation[idGasStation];
+				tmpPath.push_back(make_pair(coorGasStation.x, coorGasStation.y));
+				for(vector<pair<int,int> >::iterator city = _nearestCity[idGasStation].begin(); city != _nearestCity[idGasStation].end(); city++) {
+					ll idCity = _graphId[(*city).first][(*city).second];
+					if (_costGasStationToCity[idGasStation][idCity] <= _tankSize/2 && !markCity[idCity]) {
+						tmpPath.push_back(*city);
+						tmpPath.push_back(make_pair(coorGasStation.x, coorGasStation.y));
+						markCity[idCity] = true;
+						hasCity = true;
+					}
+				}
+				mark[idGasStation] = true;
+		}
+		cout << endl;
+		if (hasCity) {
+			cout << "has city" << endl;
+			for(vector<pair<int,int> >::iterator itTmp = tmpPath.begin(); itTmp != tmpPath.end(); itTmp++) {
+				_finalPath.push_back(*itTmp);
+			}
+			reverse(tempGasStation.begin(),tempGasStation.end());
+			cout << "back to root ";
+			for(vector<ll>::iterator i = tempGasStation.begin(); i != tempGasStation.end(); i++) {
+				cout << *i << " ";
+				ll idGasStation =  *i;
+				City coorGasStation = _listGasStation[idGasStation];
+				_finalPath.push_back(make_pair(coorGasStation.x, coorGasStation.y));
+			}
+			cout << endl;
+		}
+	}
+	for(vector<pair<int,int> >::iterator rit = _finalPath.begin(); rit != _finalPath.end(); rit++) {
+		pair<int,int> coor = *rit;
+		if (_graphIdGasStation[coor.first][coor.second] > 0) {
+			ll idGasStation = _graphIdGasStation[coor.first][coor.second];
+			for(vector<pair<int,int> >::iterator city = _nearestCity[idGasStation].begin(); city != _nearestCity[idGasStation].end(); city++) {
+				ll idCity = _graphId[(*city).first][(*city).second];
+				if (!markCity[idCity]) {
+					_finalPath.push_back(*city);
+					stop = true;
+					break;
+				}
+			}
+			if (stop) break;
+			_finalPath.push_back(make_pair(coor.first,coor.second));
 		}
 	}
 };
@@ -457,7 +562,7 @@ long long TSP::minKey(long long key[], bool mstSet[]) {
 	// Initialize min value
 	long long min = std::numeric_limits<int>::max();
 	long long min_index;
-	for (long long v = 0; v < n; v++)
+	for (long long v = 0; v < _numGasStation; v++)
 		if (mstSet[v] == false && key[v] < min) {
 			min = key[v];
 			min_index = v;
@@ -471,7 +576,7 @@ void TSP::findOdds() {
 	/////////////////////////////////////////////////////
 
 	// store odds in new vector for now
-	for (long long r = 0; r < n; r++) {
+	for (long long r = 0; r < _numGasStation; r++) {
 		//cities[r].isOdd = ((adjlist[r].size() % 2) == 0) ? 0 : 1;
 		// cout << r << " " << adjlist[r].size() << endl;
 		if ((adjlist[r].size() % 2) != 0 ) {
@@ -506,8 +611,8 @@ void TSP::perfect_matching() {
 		tmp = first;
 		for (; it != end; ++it) {
 			// if this node is closer than the current closest, update closest and length
-			if (graph[*first][*it] > 0 && graph[*first][*it] < length) {
-				length = graph[*first][*it];
+			if (_graphGasStation[*first][*it] > 0 && _graphGasStation[*first][*it] < length) {
+				length = _graphGasStation[*first][*it];
 				closest = *it;
 				tmp = it;
 			}
@@ -536,8 +641,8 @@ void TSP::euler(long long pos, vector<long long> &path) {
 	/////////////////////////////////////////////////////////
 
 	// make copy of original adjlist to use/modify
-	vector<long long> *temp = new vector<long long> [n];
-	for (long long i = 0; i < n; i++) {
+	vector<long long> *temp = new vector<long long> [_numGasStation];
+	for (long long i = 0; i < _numGasStation; i++) {
 		temp[i].resize(adjlist[i].size());
 		temp[i] = adjlist[i];
 	}
@@ -581,8 +686,8 @@ void TSP::euler(long long pos, vector<long long> &path) {
 
 void TSP::make_hamilton(vector<long long> &path, long long &path_dist) {
 	// remove visited nodes from Euler tour
-	bool visited[n]; // boolean value for each node if it has been visited yet
-	memset(visited, 0, n * sizeof(bool));
+	bool visited[_numGasStation]; // boolean value for each node if it has been visited yet
+	memset(visited, 0, _numGasStation * sizeof(bool));
 
 	path_dist = 0;
 
@@ -596,7 +701,7 @@ void TSP::make_hamilton(vector<long long> &path, long long &path_dist) {
 		// if we haven't been to the next city yet, go there
 		if (!visited[*next]) {
 			// cout << *curr << " " << *next << " " << graph[*curr][*next] << endl;
-			path_dist += graph[*curr][*next];
+			path_dist += _graphGasStation[*curr][*next];
 			curr = next;
 			visited[*curr] = true;
 			next = curr + 1;
@@ -613,13 +718,13 @@ void TSP::make_hamilton(vector<long long> &path, long long &path_dist) {
 void TSP::create_tour(long long pos){
 
 	// call euler with actual circuit vector
-	euler(pos, circuit);
+	// euler(pos, circuit);
 
 	// printEuler();
 
 	// make it hamiltonian
 	// pass actual vars
-	make_hamilton(circuit, pathLength);
+	// make_hamilton(circuit, pathLength);
 }
 
 
@@ -930,11 +1035,10 @@ void TSP::printResult(){
 	ofstream outputStream;
 	outputStream.open(outFname.c_str(), ios::out);
 	// outputStream << pathLength << endl;
-	if (_finalPath.size() > 0) {
-		for (vector<pair<int,int> >::iterator it = _finalPath.begin(); it != _finalPath.end(); ++it) {
-		//for (vector<long long>::iterator it = circuit.begin(); it != circuit.end()-1; ++it) {
-			outputStream << (*it).first << " " << (*it).second << endl;
-		}
+	for (vector<pair<int,int> >::iterator it = _finalPath.begin(); it != _finalPath.end(); ++it) {
+		outputStream << (*it).first << " " << (*it).second << endl;
+	// for (vector<long long>::iterator it = circuit.begin(); it != circuit.end(); ++it) {
+	// 	outputStream << _listGasStation[(*it)].x << " " << _listGasStation[(*it)].y << endl;
 	}
 
 	//outputStream << *(circuit.end()-1);
