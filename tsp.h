@@ -199,7 +199,7 @@ public:
 
 	void find_best_path_2();
 	pair<vector<ll>, pair<int,int> > try_to_find_maximum_heart_has_same_gas_station(ll, ll);
-	pair<vector<pair<int,int> >, ll> greedy_single_gas_station(vector<ll>, pair<int,int>, ll);
+	vector<pair<int,int> > greedy_single_gas_station(vector<pair<int,int> >, pair<int,int>, bool*);
 
 	//gas station
 	void initGraphGasStation(ll, ll);
