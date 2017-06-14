@@ -30,10 +30,8 @@ int main(int argc, char** argv) {
 
 	// Create new tsp object
 	TSP tsp(f, o);
-	long long n = tsp.get_size();
 
 	// Start timing
-	clock_t t = clock();
 	clock_t t2;
 
 	// Read cities from file
@@ -45,6 +43,7 @@ int main(int argc, char** argv) {
 	// 			<< ((float) (clock() - t)) / CLOCKS_PER_SEC << " s\n";
 
 	cout << "number of cities: " << tsp.n << endl;
+	cout << "number of gas station: " << tsp._numGasStation << endl;
 	// tsp.printCities();
 
 	// Fill N x N matrix with distances between nodes
@@ -52,17 +51,13 @@ int main(int argc, char** argv) {
 		cout << "\nFilling matrix" << endl;
 	t2 = clock();
 	tsp.fillMatrix_threads();
+	tsp.initGraph();
 	// tsp.initGraph();
 	if (DEBUG)
 		cout << "Time to fill matrix: " << ((float) (clock() - t2)) / CPS
 				<< " s\n";
 
-	// for(int i = 0; i < tsp.n; i++) {
-	// 	for(int j = 0; j < tsp.n; j++) {
-	// 		cout << tsp.graph[i][j] << " ";
-	// 	}
-	// 	cout << endl;
-	// }
+	
 
 	// Find a MST T in graph G
 	if (DEBUG)
@@ -73,104 +68,7 @@ int main(int argc, char** argv) {
 		cout << "Time to find mst: " << ((float) (clock() - t2)) / CPS
 				<< " s\n";
 
-	// Find a minimum weighted matching M for odd vertices in T
-	if (DEBUG)
-		cout << "\nFinding perfect matching" << endl;
-	t2 = clock();
-	tsp.perfect_matching();
-	if (DEBUG)
-		cout << "Time to find matching: " << ((float) (clock() - t2)) / CPS
-				<< " s\n\n";
-
-	// Find the node that leads to the best path
-	clock_t start, end;
-	start = clock();
-
-	// Create array of thread objects
-	MyThread threads[NUM_THREADS];
-
-	long long best = INT_MAX;
-	long long bestIndex;
-	long long stop_here = NUM_THREADS;
-
-	// Amount to increment starting node by each time
-	long long increment = 1; // by 1 if n < 1040
-
-	if (n >= 600 && n < 1040)
-		increment = 3;
-	else if (n >= 1040 && n < 1800)
-		increment = 8;
-	else if (n >= 1800 && n < 3205)
-		increment = 25; 		// ~ 220s @ 3200
-	else if (n >= 3205 && n < 4005)
-		increment = 50; 		// ~ 230s @ 4000
-	else if (n >= 4005 && n < 5005)
-		increment = 120;		// ~ 200 @ 5000
-	else if (n >= 5005 && n < 6500)
-		increment = 250;		// ~ 220s @ 6447
-	else if (n >= 6500)
-		increment = 500;
-
-	long long remaining = 1;
-
-	// Start at node zero
-	long long node = 0;
-
-	// Count to get thread ids
-	long long count = 0;
-
-	while (remaining >= increment) {
-		// Keep track iteration when last node will be reached
-		if (remaining < (NUM_THREADS * increment)) {
-
-			// each iteration advances NUM_THREADS * increment nodes
-			stop_here = remaining / increment;
-		}
-
-		for (long t = 0; t < stop_here; t++) {
-			cout << "Thread " << count << " starting at node " << node << endl;
-			threads[t].start_node = node;
-			threads[t].my_id = count;
-			threads[t].mytsp = &tsp;
-			threads[t].start();
-			node += increment;
-			count++;
-		}
-
-		// Wait for all the threads
-		for (long t = 0; t < stop_here; t++) {
-			threads[t].join();
-		}
-		remaining -= (stop_here * increment);
-	}
-
-	cout << "count: " << count << endl;
-	// Loop through each index used and find shortest path
-	for (long t = 0; t < count; t++) {
-		if (tsp.path_vals[t][1] < best) {
-			bestIndex = tsp.path_vals[t][0];
-			best = tsp.path_vals[t][1];
-		}
-	}
-
-	end = clock();
-	// cout << "\nbest: " << best << " @ index " << bestIndex << endl;
-	// cout << "time: " << ((float) (end - start)) / CPS << "s\n";
-
-	// Store best path
-	// tsp.create_tour(bestIndex);
-
-	// cout << "\nFinal length: " << tsp.pathLength << endl;
-
-	if (DEBUG)
-		cout << "\nTotal time: " << ((float) (clock() - t)) / CPS << "s\n";
-
-	// tsp.printEuler();
-
-	// tsp.find_best_path(0);
-	// tsp.find_best_path_2();
-	
-	// Prlong long to file
+	//print result to file
 	tsp.printResult();
 	return 0;
 }

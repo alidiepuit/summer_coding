@@ -186,7 +186,7 @@ public:
 	// Get node count
 	long long get_size() {return n;};
 
-	void initGraph(ll,ll);
+	void initGraph();
 	void floatMatrix(int x, int y, long long tankSize);
 	bool isValidPosition(int, int);
 	long long getMaxValue();

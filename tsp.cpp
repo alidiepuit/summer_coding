@@ -770,3 +770,47 @@ void TSP::printCities(){
 	for (vector<City>::iterator it = cities.begin(); it != cities.end(); ++it)
 		cout << i++ << ":  " << it->x << " " << it->y << endl;
 }
+
+void TSP::initGraph() {
+    for (ll i = 0; i < n; i++) {
+        City city = cities[i];
+        // cout << "begin " << city.x << " " << city.y << endl;
+        floatMatrix(city.x, city.y, _tankSize);
+    }
+}
+
+void TSP::floatMatrix(int x, int y, long long tankSize) {
+    queue<pair<int, City> > vec;
+    struct City c = {x, y};
+    vec.push(make_pair(0, c));
+    int visitedGraph[_row+1][_col+1];
+    memset(visitedGraph, -1, (_row+1) * (_col+1) * sizeof(int));
+    long long idCity = _graphId[x][y];
+
+    long long maxV = 0;
+    // cout << "fuck " << c.x << " " << c.y << endl;
+    visitedGraph[c.x][c.y] = maxV;
+    while (vec.size() > 0) {
+        pair<ll, City> p = vec.front();
+        vec.pop();
+        City city = p.second;
+        maxV = p.first;
+        
+        for(int i = 0; i < 4; i++) {
+            int newx = city.x + DIRX[i];
+            int newy = city.y + DIRY[i];
+            struct City c = {newx, newy};
+            // cout << "check isValidPosition " << newx << " " << newy << " " << isValidPosition(newx, newy)  << " " << visitedGraph[newx][newy] << endl;
+            if (isValidPosition(newx, newy) && visitedGraph[newx][newy]==-1 && maxV+1 <= _tankSize) {
+                visitedGraph[newx][newy] = maxV+1;
+                vec.push(make_pair(maxV+1,c));
+
+                //check whether visit city
+                if (_originMap[newx][newy] == 3) {
+                    graph[idCity][_graphId[newx][newy]] = maxV+1;
+                    graph[_graphId[newx][newy]][idCity] = maxV+1;
+                }
+            }
+        }
+    }
+}
