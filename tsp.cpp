@@ -466,18 +466,21 @@ void TSP::findMST_old() {
 			 * FIXME: find the better way to go from 1 path to the other
 			 * Go back to root
 			 */
-			reverse(tempGasStation.begin(),tempGasStation.end());
-			cout << "back to root ";
-			for(vector<ll>::iterator i = tempGasStation.begin()+1; i != tempGasStation.end(); i++) {
-				cout << *i << " ";
-				ll idGasStation =  *i;
-				City coorGasStation = _listGasStation[idGasStation];
-				_finalPath.push_back(make_pair(coorGasStation.x, coorGasStation.y));
+			//Do not go back path if current path is the last one
+			if ((it+1) != _connectedGasStation.end()) {
+				reverse(tempGasStation.begin(),tempGasStation.end());
+				cout << "back to root ";
+				for(vector<ll>::iterator i = tempGasStation.begin()+1; i != tempGasStation.end(); i++) {
+					cout << *i << " ";
+					ll idGasStation =  *i;
+					City coorGasStation = _listGasStation[idGasStation];
+					_finalPath.push_back(make_pair(coorGasStation.x, coorGasStation.y));
+				}
+				cout << endl;
 			}
-			cout << endl;
 		}
 	}
-	for(vector<pair<int,int> >::iterator rit = _finalPath.begin(); rit != _finalPath.end(); rit++) {
+	for(vector<pair<int,int> >::reverse_iterator rit = _finalPath.rbegin(); rit != _finalPath.rend(); rit++) {
 		pair<int,int> coor = *rit;
 		if (_graphIdGasStation[coor.first][coor.second] > 0) {
 			ll idGasStation = _graphIdGasStation[coor.first][coor.second];
@@ -729,6 +732,13 @@ void TSP::printResult(){
 	outputStream.open(outFname.c_str(), ios::out);
 	// outputStream << pathLength << endl;
 	for (vector<pair<int,int> >::iterator it = _finalPath.begin(); it != _finalPath.end(); ++it) {
+		if (it != _finalPath.begin()) {
+			pair<int,int> pPrev = *(it-1);
+			pair<int,int> p = *it;
+			if (p.first == pPrev.first && p.second == pPrev.second) {
+				continue;
+			}
+		}
 		outputStream << (*it).first << " " << (*it).second << endl;
 	// for (vector<long long>::iterator it = circuit.begin(); it != circuit.end(); ++it) {
 	// 	outputStream << _listGasStation[(*it)].x << " " << _listGasStation[(*it)].y << endl;
