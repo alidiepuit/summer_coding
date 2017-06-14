@@ -413,7 +413,7 @@ void TSP::findMST_old() {
 	long long key[_numGasStation];   // Key values used to pick minimum weight edge in cut
 	bool in_mst[_numGasStation];  // To represent set of vertices not yet included in MST
 	long long parent[_numGasStation];
-	memset(parent, 0, _numGasStation * sizeof(ll));
+	memset(parent, -1, _numGasStation * sizeof(ll));
 
 	// For each vertex v in V
 	for (long long v = 0; v < _numGasStation; v++) {
@@ -458,8 +458,8 @@ void TSP::findMST_old() {
 		}
 	}
 
-	// cout << n << endl;
-	// for (long long v1 = 0; v1 < _numGasStation; v1++) cout << "fuck " << v1 << " " << parent[v1] << endl;
+	cout << n << endl;
+	for (long long v1 = 0; v1 < _numGasStation; v1++) cout << "fuck " << v1 << " " << parent[v1] << endl;
 
 	// map relations from parent array onto matrix
 	for (long long v1 = 0; v1 < _numGasStation; v1++) {
@@ -481,13 +481,14 @@ void TSP::findMST_old() {
 			t = i;
 			while (t != -1) {
 				tmp.push_back(t);
-				// cout << t << " ";
 				mark[t] = 1;
 				t = parent[t];
 			}
-			// cout << "======" << endl;
-			std::reverse(tmp.begin(),tmp.end());
-			_connectedGasStation.push_back(tmp);
+			if ((*(tmp.end()-1)) == idFirstGasStation) {
+				std::reverse(tmp.begin(),tmp.end());
+				_connectedGasStation.push_back(tmp);
+			}
+			
 		}
 
 	memset(mark, 0, _numGasStation * sizeof(bool));
