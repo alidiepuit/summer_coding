@@ -199,13 +199,19 @@ public:
 
 	void find_best_path_2();
 	pair<vector<ll>, pair<int,int> > try_to_find_maximum_heart_has_same_gas_station(ll, ll);
-	vector<pair<int,int> > greedy_single_gas_station(vector<pair<int,int> >, pair<int,int>, bool*);
+	vector<pair<int,int> > greedy_single_gas_station(vector<pair<int,int> >, pair<int,int>);
 
 	//gas station
 	void initGraphGasStation(ll, ll);
 	void floatMatrixGasStation(int, int, ll);
 	pair<int,int> _positionStart;
 	vector< vector<ll> > _connectedGasStation;
+
+	vector<ll> *_connectedGraph;
+	bool *_markCity;
+	bool *_markGasStation;
+	void recursive_connected_graph(ll idGasStation);
+	ll _numGasStationConnected;
 };
 
 #endif /* MWM_H_ */

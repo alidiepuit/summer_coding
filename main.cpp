@@ -68,6 +68,8 @@ int main(int argc, char** argv) {
 		cout << "Time to find mst: " << ((float) (clock() - t2)) / CPS
 				<< " s\n";
 
+
+
 	//print result to file
 	tsp.printResult();
 	return 0;
