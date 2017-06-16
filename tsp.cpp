@@ -211,13 +211,19 @@ void TSP::floatMatrixGasStation(int x, int y, ll tankSize) {
     queue<pair<int, City> > vec;
     struct City c = {x, y};
     vec.push(make_pair(0, c));
-	int visitedGraph[_row+1][_col+1];
-	memset(visitedGraph, -1, (_row+1) * (_col+1) * sizeof(int));
+	bool **visitedGraph;
+    visitedGraph = new bool*[_row+1];
+	for (long long i = 0; i < _row+1; i++) {
+		visitedGraph[i] = new bool[_col+1];
+		for (long long j = 0; j < _col+1; j++) {
+			visitedGraph[i][j] = 0;
+		}
+	}
     long long idGasStation = _graphIdGasStation[x][y];
 
     long long maxV = 0;
     // cout << "fuck " << c.x << " " << c.y << endl;
-    visitedGraph[c.x][c.y] = maxV;
+    visitedGraph[c.x][c.y] = 1;
     while (vec.size() > 0) {
         pair<ll, City> p = vec.front();
         vec.pop();
@@ -233,8 +239,8 @@ void TSP::floatMatrixGasStation(int x, int y, ll tankSize) {
             int newy = city.y + DIRY[i];
             struct City c = {newx, newy};
             // cout << "check isValidPosition " << newx << " " << newy << " " << isValidPosition(newx, newy)  << " " << visitedGraph[newx][newy] << endl;
-            if (isValidPosition(newx, newy) && visitedGraph[newx][newy]==-1 && maxV+1 <= _tankSize) {
-                visitedGraph[newx][newy] = maxV+1;
+            if (isValidPosition(newx, newy) && visitedGraph[newx][newy]==0 && maxV+1 <= _tankSize) {
+                visitedGraph[newx][newy] = 1;
                 vec.push(make_pair(maxV+1,c));
 
                 //check whether visit gas station
@@ -248,7 +254,7 @@ void TSP::floatMatrixGasStation(int x, int y, ll tankSize) {
                 	long long idCity = _graphId[newx][newy];
                 	_costGasStationToCity[idGasStation][idCity] = maxV+1;
                 	_nearestCity[idGasStation].push_back(make_pair(newx,newy));
-                	// cout << idGasStation << " " << idCity << " " << maxV+1 << endl;
+                	// cout << idGasStation << " " << newx << " " << newy << " " << maxV+1 << endl;
                 	if (maxV+1 <= tankSize / 2 || (newx == _positionStart.first && newy == _positionStart.second)) {
                 		_nearestGasStation[idCity].push_back(make_pair(x,y));
             		}
@@ -401,6 +407,7 @@ void TSP::findMST_old() {
 		}
 	}
 
+
 	_markCity = new bool[n];
 	memset(_markCity, 0, n * sizeof(bool));
 	_markGasStation = new bool[_numGasStation];
@@ -409,6 +416,7 @@ void TSP::findMST_old() {
 	_finalPath.push_back(_positionStart);
 	_markCity[_graphId[_positionStart.first][_positionStart.second]] = 1;
 
+	// cout << __LINE__ << " fuck" << endl;
 	recursive_connected_graph(idFirstGasStation);
 
 	bool hasLastHeart = false;
@@ -448,15 +456,19 @@ vector<pair<int,int> > TSP::greedy_single_gas_station(vector<pair<int,int> > pat
 	// res.push_back(gasStation);
 	while (i < length) {
 		pair<int,int> coor = pathCities[i];
+		// cout << __LINE__ << " " << i  << " " << coor.first << " " << coor.second << endl;
 		ll indexCurrentCity = _graphId[coor.first][coor.second];
 		City currentCity = cities[indexCurrentCity];
 		// cout << "mark city " << indexCurrentCity << " " << _markCity[indexCurrentCity] << endl;
 		if (!_markCity[indexCurrentCity] && _costGasStationToCity[indexGasStation][indexCurrentCity] <= _tankSize/2) {
-
+			// cout << __LINE__ << endl;
 			if (res.size() == 0) {
+				// cout << __LINE__ << endl;
 				gasRemain -= _costGasStationToCity[indexGasStation][indexCurrentCity];
 				res.push_back(make_pair(currentCity.x,currentCity.y));
+				// cout << __LINE__ << endl;
 			} else {
+				// cout << i << " fuck " << endl;
 				pair<int,int> coor = pathCities[i-1];
 				ll indexPrevCity = _graphId[coor.first][coor.second];
 				ll costPrevCityToCurrentCity = graph[indexCurrentCity][indexPrevCity];
@@ -472,13 +484,15 @@ vector<pair<int,int> > TSP::greedy_single_gas_station(vector<pair<int,int> > pat
 					gasRemain = _tankSize - costGasStationToCurrentCity;
 				}
 			}
+	// cout << __LINE__ << endl;
 			_markCity[indexCurrentCity] = 1;
 		}
 
+	// cout << __LINE__ << endl;
 		//visit next city
 		i++;
 	}
-
+	// cout << __LINE__ << endl;
 	//insert gas station to path
 	// res.push_back(gasStation);
 	return res;
