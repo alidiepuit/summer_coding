@@ -205,6 +205,8 @@ void TSP::initGraphGasStation(ll start, ll end) {
 		// cout << "begin " << city.x << " " << city.y << endl;
 		floatMatrixGasStation(city.x, city.y, _tankSize);
 	}
+
+	
 }
 
 void TSP::floatMatrixGasStation(int x, int y, ll tankSize) {
@@ -407,6 +409,15 @@ void TSP::findMST_old() {
 		}
 	}
 
+	// for(int i = 0; i < _row; i++) {
+	// 	if (_graphIdGasStation[i][130] >= 0) {
+	// 		cout << __LINE__ << " " << i << endl;
+	// 	}
+	// }
+	// ll idGasStation = _graphIdGasStation[235][130];
+	// ll idCity1 = _graphId[89][28];
+	// ll idCity2 = _graphId[81][36];
+	// cout << __LINE__ << " " << idGasStation << endl;
 
 	_markCity = new bool[n];
 	memset(_markCity, 0, n * sizeof(bool));
@@ -419,6 +430,7 @@ void TSP::findMST_old() {
 	// cout << __LINE__ << " fuck" << endl;
 	recursive_connected_graph(idFirstGasStation);
 
+	/*
 	bool hasLastHeart = false;
 	vector<pair<int,int> > tmp;
 	for(vector<pair<int,int> >::iterator it = _finalPath.begin(); it != _finalPath.end(); it++) {
@@ -443,7 +455,7 @@ void TSP::findMST_old() {
 		for(vector<pair<int,int> >::iterator it = tmp.begin(); it != tmp.end(); it++)
 			_finalPath.push_back(*it);
 	}
-
+	*/
 };
 
 vector<pair<int,int> > TSP::greedy_single_gas_station(vector<pair<int,int> > pathCities, 
@@ -454,6 +466,7 @@ vector<pair<int,int> > TSP::greedy_single_gas_station(vector<pair<int,int> > pat
 	ll gasRemain = _tankSize;
 	ll indexGasStation = _graphIdGasStation[gasStation.first][gasStation.second];
 	// res.push_back(gasStation);
+	vector<ll> cityInPath;
 	while (i < length) {
 		pair<int,int> coor = pathCities[i];
 		// cout << __LINE__ << " " << i  << " " << coor.first << " " << coor.second << endl;
@@ -464,23 +477,37 @@ vector<pair<int,int> > TSP::greedy_single_gas_station(vector<pair<int,int> > pat
 			// cout << __LINE__ << endl;
 			if (res.size() == 0) {
 				// cout << __LINE__ << endl;
+
 				gasRemain -= _costGasStationToCity[indexGasStation][indexCurrentCity];
 				res.push_back(make_pair(currentCity.x,currentCity.y));
+				cityInPath.push_back(indexCurrentCity);
+
+				if (indexCurrentCity == 215) {
+					cout << __LINE__ << " " << indexCurrentCity << " " << gasRemain << endl;
+				}
 				// cout << __LINE__ << endl;
 			} else {
 				// cout << i << " fuck " << endl;
-				pair<int,int> coor = pathCities[i-1];
-				ll indexPrevCity = _graphId[coor.first][coor.second];
+				City coor = cities[*(cityInPath.end()-1)];
+				ll indexPrevCity = _graphId[coor.x][coor.y];
 				ll costPrevCityToCurrentCity = graph[indexCurrentCity][indexPrevCity];
 				// cout << costPrevCityToCurrentCity << " fuck " << endl;
 				ll costGasStationToCurrentCity = _costGasStationToCity[indexGasStation][indexCurrentCity];
 
-				if (gasRemain - costPrevCityToCurrentCity - costGasStationToCurrentCity >= 0) {
+				if (costPrevCityToCurrentCity <= 0 || costGasStationToCurrentCity <= 0) {
+					cout << __LINE__ << " " << indexPrevCity << " " << graph[indexCurrentCity][indexPrevCity] << " " << costGasStationToCurrentCity << endl;
+				}
+
+				if (costPrevCityToCurrentCity > 0 && gasRemain - costPrevCityToCurrentCity - costGasStationToCurrentCity >= 0) {
 					gasRemain -= costPrevCityToCurrentCity;
 					res.push_back(make_pair(currentCity.x,currentCity.y));
+
+					cityInPath.push_back(indexCurrentCity);
 				} else {
 					res.push_back(gasStation);
 					res.push_back(make_pair(currentCity.x,currentCity.y));
+
+					cityInPath.push_back(indexCurrentCity);
 					gasRemain = _tankSize - costGasStationToCurrentCity;
 				}
 			}
@@ -499,23 +526,41 @@ vector<pair<int,int> > TSP::greedy_single_gas_station(vector<pair<int,int> > pat
 }
 
 void TSP::recursive_connected_graph(ll idGasStation) {
-	if (!_markGasStation[idGasStation]) {
-
-	}
 	City coorGasStation = _listGasStation[idGasStation];
 	_finalPath.push_back(make_pair(coorGasStation.x,coorGasStation.y));
 
-	// cout << "visited gas station: " << idGasStation << endl;
+	
 
-	vector<pair<int,int> > path = greedy_single_gas_station(_nearestCity[idGasStation], 
-												make_pair(coorGasStation.x,coorGasStation.y));
+	// vector<pair<int,int> > path = greedy_single_gas_station(_nearestCity[idGasStation], 
+												// make_pair(coorGasStation.x,coorGasStation.y));
+
+
+
+	// if (coorGasStation.x == 234 && coorGasStation.y == 130) {
+	// 	ll idCity1 = _graphId[249][139];
+	// 	ll idCity2 = _graphId[253][128];
+	// 	cout << __LINE__ << " " << idCity1 << " " << idCity2 << " " << graph[idCity1][idCity2] << endl;
+	// 	for(vector<pair<int,int> >::iterator i = path.begin(); i != path.end(); i++) {
+	// 		ll idCity = _graphId[(*i).first][(*i).second];
+	// 		cout << (*i).first << "," << (*i).second << " " << _costGasStationToCity[idGasStation][idCity] << endl;	
+	// 	}
+	// }
+
+	for(vector<pair<int,int> >::iterator i = _nearestCity[idGasStation].begin(); i != _nearestCity[idGasStation].end(); i++) {
+		ll idCity = _graphId[(*i).first][(*i).second];
+		if (!_markCity[idCity] && _costGasStationToCity[idGasStation][idCity] <= _tankSize/2) {
+			_finalPath.push_back(make_pair((*i).first,(*i).second));
+			_finalPath.push_back(make_pair(coorGasStation.x,coorGasStation.y));
+			_markCity[idCity] = 1;
+		}
+	}
 
 	// cout << "visited path size: " << path.size() << endl;
-	if (path.size() > 0) {
-		for(vector<pair<int,int> >::iterator i = path.begin(); i != path.end(); i++)
-			_finalPath.push_back(*i);
-		_finalPath.push_back(make_pair(coorGasStation.x,coorGasStation.y));
-	}
+	// if (path.size() > 0) {
+	// 	for(vector<pair<int,int> >::iterator i = path.begin(); i != path.end(); i++)
+	// 		_finalPath.push_back(*i);
+	// 	_finalPath.push_back(make_pair(coorGasStation.x,coorGasStation.y));
+	// }
 
 	// cout << "has child gas station: " << _connectedGraph[idGasStation].size() << endl;
 	for(vector<ll>::iterator i = _connectedGraph[idGasStation].begin();
@@ -773,32 +818,49 @@ void TSP::floatMatrix(int x, int y, long long tankSize) {
     queue<pair<int, City> > vec;
     struct City c = {x, y};
     vec.push(make_pair(0, c));
-    int visitedGraph[_row+1][_col+1];
-    memset(visitedGraph, -1, (_row+1) * (_col+1) * sizeof(int));
+    bool **visitedGraph;
+    visitedGraph = new bool*[_row+1];
+	for (long long i = 0; i < _row+1; i++) {
+		visitedGraph[i] = new bool[_col+1];
+		for (long long j = 0; j < _col+1; j++) {
+			visitedGraph[i][j] = 0;
+		}
+	}
     long long idCity = _graphId[x][y];
 
     long long maxV = 0;
-    // cout << "fuck " << c.x << " " << c.y << endl;
-    visitedGraph[c.x][c.y] = maxV;
+    if (_graphId[x][y] == 196) {
+    	// cout << "fuck " << c.x << " " << c.y << endl;
+    } 
+    visitedGraph[c.x][c.y] = 1;
     while (vec.size() > 0) {
         pair<ll, City> p = vec.front();
         vec.pop();
         City city = p.second;
         maxV = p.first;
         
+        if (maxV >= _tankSize) {
+        	continue;
+        }
+
         for(int i = 0; i < 4; i++) {
             int newx = city.x + DIRX[i];
             int newy = city.y + DIRY[i];
             struct City c = {newx, newy};
-            // cout << "check isValidPosition " << newx << " " << newy << " " << isValidPosition(newx, newy)  << " " << visitedGraph[newx][newy] << endl;
-            if (isValidPosition(newx, newy) && visitedGraph[newx][newy]==-1 && maxV+1 <= _tankSize) {
-                visitedGraph[newx][newy] = maxV+1;
+            if (_graphId[x][y] == 196) {
+            	// cout << "check isValidPosition " << newx << " " << newy << " " << isValidPosition(newx, newy)  << " " << visitedGraph[newx][newy] << endl;
+            }
+            if (isValidPosition(newx, newy) && visitedGraph[newx][newy]==0 && maxV+1 <= _tankSize) {
+                visitedGraph[newx][newy] = 1;
                 vec.push(make_pair(maxV+1,c));
 
                 //check whether visit city
                 if (_originMap[newx][newy] == 3) {
                     graph[idCity][_graphId[newx][newy]] = maxV+1;
                     graph[_graphId[newx][newy]][idCity] = maxV+1;
+                    if (_graphId[x][y] == 215 && _graphId[newx][newy] == 196) {
+				    	// cout << __LINE__ << " fuck " << maxV+1 << endl;
+				    }  
                 }
             }
         }
