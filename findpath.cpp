@@ -10,8 +10,10 @@
 
 #include "stlastar.h" // See header for copyright and usage information
 
+#include <fstream>
 #include <iostream>
 #include <math.h>
+#include "usage.h"
 
 #define DEBUG_LISTS 0
 #define DEBUG_LIST_LENGTHS_ONLY 0
@@ -21,36 +23,9 @@ using namespace std;
 // Global data
 
 // The world map
-
-const int MAP_WIDTH = 20;
-const int MAP_HEIGHT = 20;
-
-int map[ MAP_WIDTH * MAP_HEIGHT ] = 
-{
-
-// 0001020304050607080910111213141516171819
-	1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,   // 00
-	1,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,1,   // 01
-	1,9,9,1,1,9,9,9,1,9,1,9,1,9,1,9,9,9,1,1,   // 02
-	1,9,9,1,1,9,9,9,1,9,1,9,1,9,1,9,9,9,1,1,   // 03
-	1,9,1,1,1,1,9,9,1,9,1,9,1,1,1,1,9,9,1,1,   // 04
-	1,9,1,1,9,1,1,1,1,9,1,1,1,1,9,1,1,1,1,1,   // 05
-	1,9,9,9,9,1,1,1,1,1,1,9,9,9,9,1,1,1,1,1,   // 06
-	1,9,9,9,9,9,9,9,9,1,1,1,9,9,9,9,9,9,9,1,   // 07
-	1,9,1,1,1,1,1,1,1,1,1,9,1,1,1,1,1,1,1,1,   // 08
-	1,9,1,9,9,9,9,9,9,9,1,1,9,9,9,9,9,9,9,1,   // 09
-	1,9,1,1,1,1,9,1,1,9,1,1,1,1,1,1,1,1,1,1,   // 10
-	1,9,9,9,9,9,1,9,1,9,1,9,9,9,9,9,1,1,1,1,   // 11
-	1,9,1,9,1,9,9,9,1,9,1,9,1,9,1,9,9,9,1,1,   // 12
-	1,9,1,9,1,9,9,9,1,9,1,9,1,9,1,9,9,9,1,1,   // 13
-	1,9,1,1,1,1,9,9,1,9,1,9,1,1,1,1,9,9,1,1,   // 14
-	1,9,1,1,9,1,1,1,1,9,1,1,1,1,9,1,1,1,1,1,   // 15
-	1,9,9,9,9,1,1,1,1,1,1,9,9,9,9,1,1,1,1,1,   // 16
-	1,1,9,9,9,9,9,9,9,1,1,1,9,9,9,1,9,9,9,9,   // 17
-	1,9,1,1,1,1,1,1,1,1,1,9,1,1,1,1,1,1,1,1,   // 18
-	1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,   // 19
-
-};
+int MAP_WIDTH, MAP_HEIGHT, begX, begY, _tankSize;
+int *map;
+ofstream outputStream;
 
 // map helper functions
 
@@ -63,7 +38,7 @@ int GetMap( int x, int y )
 		 y >= MAP_HEIGHT
 	  )
 	{
-		return 9;	 
+		return 0;	 
 	}
 
 	return map[(y*MAP_WIDTH)+x];
@@ -88,9 +63,7 @@ public:
 	float GetCost( MapSearchNode &successor );
 	bool IsSameState( MapSearchNode &rhs );
 
-	void PrintNodeInfo(); 
-
-
+	void PrintNodeInfo();
 };
 
 bool MapSearchNode::IsSameState( MapSearchNode &rhs )
@@ -111,7 +84,8 @@ bool MapSearchNode::IsSameState( MapSearchNode &rhs )
 
 void MapSearchNode::PrintNodeInfo()
 {
-	cout << "Node position : (" << x << ", " << y << ")" << endl;
+	// cout << "Node position : (" << x << ", " << y << ")" << endl;
+	outputStream << x+1 << " " << y+1 << endl;
 }
 
 // Here's the heuristic function that estimates the distance from a Node
@@ -158,7 +132,7 @@ bool MapSearchNode::GetSuccessors( AStarSearch<MapSearchNode> *astarsearch, MapS
 
 	// push each possible move except allowing the search to go backwards
 
-	if( (GetMap( x-1, y ) < 9) 
+	if( (GetMap( x-1, y ) != 0) 
 		&& !((parent_x == x-1) && (parent_y == y))
 	  ) 
 	{
@@ -166,7 +140,7 @@ bool MapSearchNode::GetSuccessors( AStarSearch<MapSearchNode> *astarsearch, MapS
 		astarsearch->AddSuccessor( NewNode );
 	}	
 
-	if( (GetMap( x, y-1 ) < 9) 
+	if( (GetMap( x, y-1 ) != 0) 
 		&& !((parent_x == x) && (parent_y == y-1))
 	  ) 
 	{
@@ -174,7 +148,7 @@ bool MapSearchNode::GetSuccessors( AStarSearch<MapSearchNode> *astarsearch, MapS
 		astarsearch->AddSuccessor( NewNode );
 	}	
 
-	if( (GetMap( x+1, y ) < 9)
+	if( (GetMap( x+1, y ) != 0)
 		&& !((parent_x == x+1) && (parent_y == y))
 	  ) 
 	{
@@ -183,7 +157,7 @@ bool MapSearchNode::GetSuccessors( AStarSearch<MapSearchNode> *astarsearch, MapS
 	}	
 
 		
-	if( (GetMap( x, y+1 ) < 9) 
+	if( (GetMap( x, y+1 ) != 0) 
 		&& !((parent_x == x) && (parent_y == y+1))
 		)
 	{
@@ -200,143 +174,190 @@ bool MapSearchNode::GetSuccessors( AStarSearch<MapSearchNode> *astarsearch, MapS
 
 float MapSearchNode::GetCost( MapSearchNode &successor )
 {
-	return (float) GetMap( x, y );
+	return (float)1;
+}
 
+AStarSearch<MapSearchNode> astarsearch;
+
+void findPath(MapSearchNode nodeStart, MapSearchNode nodeEnd) {
+	astarsearch.SetStartAndGoalStates( nodeStart, nodeEnd );
+
+	unsigned int SearchState;
+	unsigned int SearchSteps = 0;
+
+	do
+	{
+		SearchState = astarsearch.SearchStep();
+
+		SearchSteps++;
+
+#if DEBUG_LISTS
+
+		cout << "Steps:" << SearchSteps << "\n";
+
+		int len = 0;
+
+		cout << "Open:\n";
+		MapSearchNode *p = astarsearch.GetOpenListStart();
+		while( p )
+		{
+			len++;
+#if !DEBUG_LIST_LENGTHS_ONLY
+			//don't print first position
+			if (len > 1) { 		
+				((MapSearchNode *)p)->PrintNodeInfo();
+			}
+#endif
+			p = astarsearch.GetOpenListNext();
+			
+		}
+
+		cout << "Open list has " << len << " nodes\n";
+
+		len = 0;
+
+		cout << "Closed:\n";
+		p = astarsearch.GetClosedListStart();
+		while( p )
+		{
+			len++;
+#if !DEBUG_LIST_LENGTHS_ONLY
+			if (len > 1) { 			
+				p->PrintNodeInfo();
+			}
+#endif			
+			p = astarsearch.GetClosedListNext();
+		}
+
+		cout << "Closed list has " << len << " nodes\n";
+#endif
+
+	}
+	while( SearchState == AStarSearch<MapSearchNode>::SEARCH_STATE_SEARCHING );
+
+	if( SearchState == AStarSearch<MapSearchNode>::SEARCH_STATE_SUCCEEDED )
+	{
+		// cout << "Search found goal state\n";
+
+			MapSearchNode *node = astarsearch.GetSolutionStart();
+
+#if DISPLAY_SOLUTION
+			cout << "Displaying solution\n";
+#endif
+			int steps = 0;
+
+			// node->PrintNodeInfo();
+			for( ;; )
+			{
+				node = astarsearch.GetSolutionNext();
+
+				if( !node )
+				{
+					break;
+				}
+
+				node->PrintNodeInfo();
+				steps ++;
+			
+			};
+
+			if (steps > _tankSize) {
+				cout << "Solution steps " << steps << endl;
+			}
+
+			// Once you're done with the solution you can free the nodes up
+			astarsearch.FreeSolutionNodes();
+
+
+	}
+	else if( SearchState == AStarSearch<MapSearchNode>::SEARCH_STATE_FAILED ) 
+	{
+		cout << "Search terminated. Did not find goal state\n";
+	
+	}
+
+	astarsearch.EnsureMemoryFreed();
+}
+
+void readMap(string fMap) {
+	ifstream inStream;
+	inStream.open(fMap.c_str(), ios::in);
+
+	//init output
+	string fOutput = fMap.append(".output");
+	outputStream.open(fOutput.c_str(), ios::out);
+
+	if (!inStream) {
+	  cerr << "Can't open input file " << fMap << endl;
+	  exit(1);
+	}
+
+	inStream >> begX >> begY >> _tankSize;
+	inStream >> MAP_WIDTH >> MAP_HEIGHT;
+	map = new int[MAP_HEIGHT*MAP_WIDTH];
+	for(int i = 0; i < MAP_WIDTH; i++) {
+		for(int j = 0; j < MAP_HEIGHT; j++) {
+			inStream >> map[j*MAP_WIDTH+i];
+		}
+	}
+	inStream.close();
 }
 
 
+
+
+void readTour(string fTour) {
+	ifstream inStream;
+	inStream.open(fTour.c_str(), ios::in);
+
+	if (!inStream) {
+	  cerr << "Can't open input file " << fTour << endl;
+	  exit(1);
+	}
+
+	int prevX, prevY, curX, curY;
+	inStream >> prevX >> prevY;
+
+	outputStream << begX << " " << begY << endl;
+
+	while (inStream >> curX >> curY) {
+		// Create a start state
+		MapSearchNode nodeStart;
+		nodeStart.x = prevX;
+		nodeStart.y = prevY; 
+
+		// Define the goal state
+		MapSearchNode nodeEnd;
+		nodeEnd.x = curX;						
+		nodeEnd.y = curY; 
+		
+		// Set Start and goal states
+		findPath(nodeStart, nodeEnd);
+
+		prevX = curX;
+		prevY = curY;
+	}
+	inStream.close();
+
+	cout << "Done" << endl;
+}
 // Main
 
 int main( int argc, char *argv[] )
 {
+	string fMap;
+	if (argc < 2) {
+		fMap = "map/final_map250x250.data";
+	} else {
+		fMap = argv[1];
+	}
 
 	cout << "STL A* Search implementation\n(C)2001 Justin Heyes-Jones\n";
 
-	// Our sample problem defines the world as a 2d array representing a terrain
-	// Each element contains an integer from 0 to 5 which indicates the cost 
-	// of travel across the terrain. Zero means the least possible difficulty 
-	// in travelling (think ice rink if you can skate) whilst 5 represents the 
-	// most difficult. 9 indicates that we cannot pass.
+	readMap(fMap);
+	string fTour = fMap.append(".tour");
+	readTour(fTour);
 
-	// Create an instance of the search class...
-
-	AStarSearch<MapSearchNode> astarsearch;
-
-	unsigned int SearchCount = 0;
-
-	const unsigned int NumSearches = 1;
-
-	while(SearchCount < NumSearches)
-	{
-
-		// Create a start state
-		MapSearchNode nodeStart;
-		nodeStart.x = rand()%MAP_WIDTH;
-		nodeStart.y = rand()%MAP_HEIGHT; 
-
-		// Define the goal state
-		MapSearchNode nodeEnd;
-		nodeEnd.x = rand()%MAP_WIDTH;						
-		nodeEnd.y = rand()%MAP_HEIGHT; 
-		
-		// Set Start and goal states
-		
-		astarsearch.SetStartAndGoalStates( nodeStart, nodeEnd );
-
-		unsigned int SearchState;
-		unsigned int SearchSteps = 0;
-
-		do
-		{
-			SearchState = astarsearch.SearchStep();
-
-			SearchSteps++;
-
-	#if DEBUG_LISTS
-
-			cout << "Steps:" << SearchSteps << "\n";
-
-			int len = 0;
-
-			cout << "Open:\n";
-			MapSearchNode *p = astarsearch.GetOpenListStart();
-			while( p )
-			{
-				len++;
-	#if !DEBUG_LIST_LENGTHS_ONLY			
-				((MapSearchNode *)p)->PrintNodeInfo();
-	#endif
-				p = astarsearch.GetOpenListNext();
-				
-			}
-
-			cout << "Open list has " << len << " nodes\n";
-
-			len = 0;
-
-			cout << "Closed:\n";
-			p = astarsearch.GetClosedListStart();
-			while( p )
-			{
-				len++;
-	#if !DEBUG_LIST_LENGTHS_ONLY			
-				p->PrintNodeInfo();
-	#endif			
-				p = astarsearch.GetClosedListNext();
-			}
-
-			cout << "Closed list has " << len << " nodes\n";
-	#endif
-
-		}
-		while( SearchState == AStarSearch<MapSearchNode>::SEARCH_STATE_SEARCHING );
-
-		if( SearchState == AStarSearch<MapSearchNode>::SEARCH_STATE_SUCCEEDED )
-		{
-			cout << "Search found goal state\n";
-
-				MapSearchNode *node = astarsearch.GetSolutionStart();
-
-	#if DISPLAY_SOLUTION
-				cout << "Displaying solution\n";
-	#endif
-				int steps = 0;
-
-				node->PrintNodeInfo();
-				for( ;; )
-				{
-					node = astarsearch.GetSolutionNext();
-
-					if( !node )
-					{
-						break;
-					}
-
-					node->PrintNodeInfo();
-					steps ++;
-				
-				};
-
-				cout << "Solution steps " << steps << endl;
-
-				// Once you're done with the solution you can free the nodes up
-				astarsearch.FreeSolutionNodes();
-
-	
-		}
-		else if( SearchState == AStarSearch<MapSearchNode>::SEARCH_STATE_FAILED ) 
-		{
-			cout << "Search terminated. Did not find goal state\n";
-		
-		}
-
-		// Display the number of loops the search went through
-		cout << "SearchSteps : " << SearchSteps << "\n";
-
-		SearchCount ++;
-
-		astarsearch.EnsureMemoryFreed();
-	}
 	
 	return 0;
 }

@@ -72,5 +72,9 @@ int main(int argc, char** argv) {
 
 	//print result to file
 	tsp.printResult();
+
+	//print detail path
+	
+
 	return 0;
 }

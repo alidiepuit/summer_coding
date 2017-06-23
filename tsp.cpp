@@ -375,7 +375,7 @@ void TSP::findMST_old() {
 
 		// Look at each vertex u adjacent to v that's not yet in mst
 		for (long long u = 0; u < _numGasStation; u++) {
-			if (_graphGasStation[v][u] > 0 && in_mst[u] == false && _graphGasStation[v][u] < key[u]) {
+			if (_graphGasStation[v][u] > 0 && _graphGasStation[v][u] <= _tankSize && in_mst[u] == false && _graphGasStation[v][u] < key[u]) {
 				// Update parent index of u
 				parent[u] = v;
 				// cout << "find u " << u << " " << v << " " << _graphGasStation[v][u] << endl;
@@ -430,7 +430,7 @@ void TSP::findMST_old() {
 	// cout << __LINE__ << " fuck" << endl;
 	recursive_connected_graph(idFirstGasStation);
 
-	/*
+	
 	bool hasLastHeart = false;
 	vector<pair<int,int> > tmp;
 	for(vector<pair<int,int> >::iterator it = _finalPath.begin(); it != _finalPath.end(); it++) {
@@ -455,7 +455,7 @@ void TSP::findMST_old() {
 		for(vector<pair<int,int> >::iterator it = tmp.begin(); it != tmp.end(); it++)
 			_finalPath.push_back(*it);
 	}
-	*/
+	
 };
 
 vector<pair<int,int> > TSP::greedy_single_gas_station(vector<pair<int,int> > pathCities, 
@@ -482,9 +482,9 @@ vector<pair<int,int> > TSP::greedy_single_gas_station(vector<pair<int,int> > pat
 				res.push_back(make_pair(currentCity.x,currentCity.y));
 				cityInPath.push_back(indexCurrentCity);
 
-				if (indexCurrentCity == 215) {
-					cout << __LINE__ << " " << indexCurrentCity << " " << gasRemain << endl;
-				}
+				// if (indexCurrentCity == 215) {
+					// cout << __LINE__ << " " << indexCurrentCity << " " << gasRemain << endl;
+				// }
 				// cout << __LINE__ << endl;
 			} else {
 				// cout << i << " fuck " << endl;
@@ -525,14 +525,14 @@ vector<pair<int,int> > TSP::greedy_single_gas_station(vector<pair<int,int> > pat
 	return res;
 }
 
+bool isExit = false;
 void TSP::recursive_connected_graph(ll idGasStation) {
+	// if (isExit) return;
 	City coorGasStation = _listGasStation[idGasStation];
 	_finalPath.push_back(make_pair(coorGasStation.x,coorGasStation.y));
 
-	
-
-	// vector<pair<int,int> > path = greedy_single_gas_station(_nearestCity[idGasStation], 
-												// make_pair(coorGasStation.x,coorGasStation.y));
+	vector<pair<int,int> > path = greedy_single_gas_station(_nearestCity[idGasStation], 
+												make_pair(coorGasStation.x,coorGasStation.y));
 
 
 
@@ -546,26 +546,35 @@ void TSP::recursive_connected_graph(ll idGasStation) {
 	// 	}
 	// }
 
-	for(vector<pair<int,int> >::iterator i = _nearestCity[idGasStation].begin(); i != _nearestCity[idGasStation].end(); i++) {
-		ll idCity = _graphId[(*i).first][(*i).second];
-		if (!_markCity[idCity] && _costGasStationToCity[idGasStation][idCity] <= _tankSize/2) {
-			_finalPath.push_back(make_pair((*i).first,(*i).second));
-			_finalPath.push_back(make_pair(coorGasStation.x,coorGasStation.y));
-			_markCity[idCity] = 1;
-		}
-	}
+	// if (coorGasStation.x == 18 && coorGasStation.y == 171) {
+		// for(vector<pair<int,int> >::iterator i = _nearestCity[idGasStation].begin(); i != _nearestCity[idGasStation].end(); i++) {
+		// 	ll idCity = _graphId[(*i).first][(*i).second];
+		// 	// cout << __LINE__ << " visited " << idCity << " " << _costGasStationToCity[idGasStation][idCity] << endl;
+		// 	if (!_markCity[idCity] && _costGasStationToCity[idGasStation][idCity] > 0 
+		// 			&& _costGasStationToCity[idGasStation][idCity] < _tankSize/2) {
+
+		// 		// cout << __LINE__ << " input " << idCity << " " << _costGasStationToCity[idGasStation][idCity] << endl;
+		// 		_finalPath.push_back(make_pair((*i).first,(*i).second));
+		// 		_finalPath.push_back(make_pair(coorGasStation.x,coorGasStation.y));
+		// 		_markCity[idCity] = 1;
+		// 	}
+		// }
+		// isExit = true;
+		// return;
+	// }
 
 	// cout << "visited path size: " << path.size() << endl;
-	// if (path.size() > 0) {
-	// 	for(vector<pair<int,int> >::iterator i = path.begin(); i != path.end(); i++)
-	// 		_finalPath.push_back(*i);
-	// 	_finalPath.push_back(make_pair(coorGasStation.x,coorGasStation.y));
-	// }
+	if (path.size() > 0) {
+		for(vector<pair<int,int> >::iterator i = path.begin(); i != path.end(); i++)
+			_finalPath.push_back(*i);
+		_finalPath.push_back(make_pair(coorGasStation.x,coorGasStation.y));
+	}
 
 	// cout << "has child gas station: " << _connectedGraph[idGasStation].size() << endl;
 	for(vector<ll>::iterator i = _connectedGraph[idGasStation].begin();
 				i != _connectedGraph[idGasStation].end(); i++) {
 		recursive_connected_graph(*i);
+		// if(isExit) return;
 		_finalPath.push_back(make_pair(coorGasStation.x,coorGasStation.y));
 	}
 }
